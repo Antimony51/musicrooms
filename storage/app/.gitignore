@@ -1,0 +1,4 @@
+*
+!public/
+!.gitignore
+!seed_tracks.json

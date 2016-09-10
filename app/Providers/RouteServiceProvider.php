@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use Illuminate\Routing\Router;
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
+use App;
 
 class RouteServiceProvider extends ServiceProvider
 {
@@ -27,6 +28,10 @@ class RouteServiceProvider extends ServiceProvider
         //
 
         parent::boot($router);
+
+        $router->bind('room', function($value){
+            return App\Room::where('name', $value)->first();
+        });
     }
 
     /**
