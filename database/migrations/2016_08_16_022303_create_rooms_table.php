@@ -14,8 +14,11 @@ class CreateRoomsTable extends Migration
     {
         Schema::create('rooms', function (Blueprint $table) {
             $table->increments('id');
-            $table->integer('owner_id')->unsigned();
-            $table->foreign('owner_id')->references('id')->on('users');
+            $table->integer('owner_id')->unsigned()->nullable();
+            $table->foreign('owner_id')
+                ->references('id')
+                ->on('users')
+                ->onDelete('set null');
             $table->string('name')->unique();
             $table->enum('visibility', ['public', 'private']);
             $table->string('title');

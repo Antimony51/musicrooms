@@ -23,4 +23,12 @@ class User extends Authenticatable
     public function rooms(){
         return $this->hasMany('App\Room', 'owner_id');
     }
+
+    public function profile(){
+        return $this->hasOne('App\Profile', 'user_id');
+    }
+
+    public function displayName(){
+        return $this->profile()->first()->cosmetic_name ?: $this->name;
+    }
 }

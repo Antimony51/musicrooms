@@ -1,4 +1,4 @@
-@extends('layouts/master')
+@extends('layouts/app')
 
 @section('title')
     Room - {{ !empty($room->title) ? $room->title : $room->name }}

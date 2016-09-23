@@ -6,3 +6,4 @@ Homestead.json
 .env
 _ide_helper.php
 .phpstorm.meta.php
+npm-debug.log
