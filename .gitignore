@@ -7,3 +7,7 @@ Homestead.json
 _ide_helper.php
 .phpstorm.meta.php
 npm-debug.log
+
+# compiled resources
+/public/css
+/public/js
