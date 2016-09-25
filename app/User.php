@@ -1,8 +1,11 @@
 <?php
 namespace App;
+use Hootlex\Friendships\Traits\Friendable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 class User extends Authenticatable
 {
+    use Friendable;
+
     /**
      * The attributes that are mass assignable.
      *
@@ -30,5 +33,9 @@ class User extends Authenticatable
 
     public function displayName(){
         return $this->profile()->first()->cosmetic_name ?: $this->name;
+    }
+
+    public function favoriteTracks(){
+        return $this->belongsToMany('App\Track', 'favorites');
     }
 }

@@ -157,6 +157,10 @@ return [
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
 
+        /*
+         * Third-Party...
+         */
+        Hootlex\Friendships\FriendshipsServiceProvider::class,
     ],
 
     /*

@@ -18,6 +18,19 @@ class UsersTableSeeder extends Seeder
             for ($i = 0; $i < $roomCount; $i++){
                 $user->rooms()->save(factory(App\Room::class)->make());
             }
+
+            $friendCount = rand(0, 8);
+            $otherUsers = App\User::inRandomOrder()->take($friendCount)->get();
+            foreach ($otherUsers as $otherUser){
+                $user->befriend($otherUser);
+                $otherUser->acceptFriendRequest($user);
+            }
+
+            $favCount = rand(0, 8);
+            $tracks = App\Track::inRandomOrder()->take($favCount)->get();
+            foreach ($tracks as $track){
+                $user->favoriteTracks()->save($track);
+            }
         });
     }
 }

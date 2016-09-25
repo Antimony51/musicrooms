@@ -8,7 +8,11 @@
                 <div class="panel-heading">Dashboard</div>
 
                 <div class="panel-body">
-                    You are logged in!
+                    @if(Auth::guest())
+                        You are a guest.
+                    @else
+                        You are logged in as {{ Auth::user()->displayName() }}
+                    @endif
                 </div>
             </div>
         </div>
