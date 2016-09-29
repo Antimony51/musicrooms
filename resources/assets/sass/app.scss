@@ -1,9 +1,65 @@
 @import url(https://fonts.googleapis.com/css?family=Lato);
 $font-family-sans-serif: 'Lato', sans-serif;
 @import "node_modules/bootstrap-sass/assets/stylesheets/bootstrap";
+@import "node_modules/alertifyjs/build/css/alertify";
+@import "node_modules/alertifyjs/build/css/themes/default";
 
 .tabbed-panel {
   border-top: none;
   border-top-left-radius: 0;
   border-top-right-radius: 0;
+}
+
+$palette-red: #ff0000;
+$palette-heartred: #ff2c6d;
+$palette-green: #2fd127;
+$palette-blue: #475bc0;
+
+.favorite-heart {
+  position: relative;
+  top: 1px;
+  display: inline-block;
+  font-family: 'Glyphicons Halflings';
+  font-style: normal;
+  font-weight: normal;
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  cursor: pointer;
+
+  width: 15px;
+  height: 15px;
+  font-size: 15px;
+}
+
+.favorite-heart.checked {
+  color: $palette-heartred;
+}
+
+.favorite-heart:not(.spinner-small):before {
+  content: "\e143";
+}
+
+.favorite-heart.checked:not(.spinner-small):before {
+  content: "\e005";
+}
+
+.edit-buttons {
+  float: right;
+}
+
+.spinner-small {
+  display: inline-block;
+  vertical-align: top;
+  width: 15px;
+  height: 15px;
+  background-image: url('/img/spinner-small.gif');
+}
+
+.spinner-large {
+  display: inline-block;
+  vertical-align: top;
+  width: 35px;
+  height: 35px;
+  background-image: url('/img/spinner-large.gif');
 }

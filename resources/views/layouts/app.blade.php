@@ -18,6 +18,20 @@
             margin-right: 6px;
         }
     </style>
+
+    <script>
+        app = {
+            currentUser:
+            @if (Auth::check())
+                {
+                    name: '{{ Auth::user()->name }}'
+                },
+            @else
+                null,
+            @endif
+            csrf_token: "{{ csrf_token() }}"
+        }
+    </script>
 </head>
 <body id="app-layout">
     <nav class="navbar navbar-default navbar-static-top">
@@ -57,7 +71,8 @@
                             </a>
 
                             <ul class="dropdown-menu" role="menu">
-                                <li><a href="{{ url('/logout') }}"><i class="fa fa-btn fa-sign-out"></i>Logout</a></li>
+                                <li><a href="{{ route('profile', Auth::user()->name) }}">Profile</a></li>
+                                <li><a href="{{ url('/logout') }}">Logout</a></li>
                             </ul>
                         </li>
                     @endif

@@ -1,5 +1,12 @@
 @extends('layouts/app')
 @section('content')
+    <script>
+        app.currentProfile = {
+            name: "{{ $user->name }}",
+            cosmeticName: "{{ $user->profile->cosmetic_name }}",
+            displayName: "{{$user->displayName()}}"
+        }
+    </script>
     <div class="panel panel-default">
         <div class="panel-body">
             <div class="media">
@@ -9,7 +16,10 @@
                 </div>
                 <div class="media-body">
                     <h2 class="media-heading">{{ $user->displayName() }}</h2>
-                    <p><h3>Plays: {{ $profile->plays }}</h3></p>
+                    @if(!$ownProfile && Auth::check())
+                        @include('widgets.manage-friend', ['compact' => false])
+                    @endif
+                    <h3>Plays: {{ $profile->plays }}</h3>
                 </div>
             </div>
         </div>

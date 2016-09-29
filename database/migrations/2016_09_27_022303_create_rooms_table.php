@@ -23,6 +23,11 @@ class CreateRoomsTable extends Migration
             $table->enum('visibility', ['public', 'private']);
             $table->string('title');
             $table->string('description')->nullable();
+            $table->integer('current_track_id')->unsigned()->nullable();
+            $table->foreign('current_track_id')
+                ->references('id')
+                ->on('tracks')
+                ->onDelete('set null');
             $table->timestamps();
         });
     }

@@ -13,4 +13,8 @@ class Room extends Model
     public function owner(){
         return $this->belongsTo('App\User', 'owner_id');
     }
+
+    public function currentTrack(){
+        return $this->belongsTo('App\Track', 'current_track_id');
+    }
 }

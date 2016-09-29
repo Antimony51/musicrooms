@@ -4,7 +4,7 @@ use Hootlex\Friendships\Traits\Friendable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 class User extends Authenticatable
 {
-    use Friendable;
+    use Friendable, Comparable;
 
     /**
      * The attributes that are mass assignable.
@@ -22,6 +22,16 @@ class User extends Authenticatable
     protected $hidden = [
         'password', 'remember_token',
     ];
+
+    /**
+     * Get the route key for the model.
+     *
+     * @return string
+     */
+    public function getRouteKeyName()
+    {
+        return 'name';
+    }
 
     public function rooms(){
         return $this->hasMany('App\Room', 'owner_id');
