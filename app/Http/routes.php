@@ -23,5 +23,7 @@ Route::group(['middleware' => 'auth'], function(){
         Route::post('removefriend', 'UserController@removeFriend');
         Route::post('acceptfriend', 'UserController@acceptFriend');
         Route::post('declinefriend', 'UserController@declineFriend');
+        Route::post('updateprofile', 'UserController@updateProfile')->name('updateProfile');
+        Route::get('edit', 'UserController@showEditProfile')->name('showEditProfile');
     });
 });

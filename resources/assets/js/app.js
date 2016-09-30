@@ -89,7 +89,28 @@ $( document ).ready(function() {
                         .always(function(){
                             $spinner.addClass('hidden');
                         });
-                });
+                },
+                function(){});
+            } else if ($target.hasClass('requestsent')) {
+                alertify.confirm('Cancel Request', 'Are you sure you want to cancel the friend request to ' + displayName + '?', function(){
+                    $spinner.removeClass('hidden');
+                    $.ajax({
+                        url: '/user/' + user + '/removefriend',
+                        method: 'POST',
+                        data: {'_token': app.csrf_token}
+                    })
+                        .done(function(){
+                            $target.addClass('hidden');
+                            $container.find('.addfriend').removeClass('hidden');
+                        })
+                        .fail(function(){
+                            alertify.error("Cancel request failed.")
+                        })
+                        .always(function(){
+                            $spinner.addClass('hidden');
+                        });
+                    },
+                    function(){});
             } else if ($target.hasClass('acceptfriend')) {
                 $.ajax({
                     url: '/user/' + user + '/acceptfriend',

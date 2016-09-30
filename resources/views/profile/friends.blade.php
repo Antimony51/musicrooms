@@ -1,13 +1,13 @@
 @extends('layouts.profile')
 
 @section('tabcontent')
-    @if (empty($friends) && empty($pending))
+    @php
+        $i = 0;
+        $count = $friends->count() + $pending->count();
+    @endphp
+    @if ($count == 0)
         This user has no friends.
     @else
-        @php
-            $i = 0;
-            $count = $friends->count() + $pending->count();
-        @endphp
         @foreach($pending as $pendingFriend)
             @if($i % 3 == 0)
                 <div class="row">

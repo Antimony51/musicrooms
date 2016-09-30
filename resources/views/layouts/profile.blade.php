@@ -3,22 +3,27 @@
     <script>
         app.currentProfile = {
             name: "{{ $user->name }}",
-            cosmeticName: "{{ $user->profile->cosmetic_name }}",
+            cosmeticName: "{{ $profile->cosmetic_name }}",
             displayName: "{{$user->displayName()}}"
         }
     </script>
     <div class="panel panel-default">
         <div class="panel-body">
-            <div class="media">
+            <div class="profile-right-buttons">
+                @if($ownProfile)
+                    <a href="{{ route('showEditProfile', ['user' => $user]) }}" class="btn btn-default">Edit</a>
+                @endif
+                @if(!$ownProfile && Auth::check())
+                    @include('widgets.manage-friend', ['compact' => false])
+                @endif
+            </div>
+            <div class="media" style="margin-top: 0">
                 <div class="media-left">
                     <img src="{{ $profile->iconLarge() }}" alt="Profile Picture"
                          style="width: 200px; height: 200px;">
                 </div>
                 <div class="media-body">
                     <h2 class="media-heading">{{ $user->displayName() }}</h2>
-                    @if(!$ownProfile && Auth::check())
-                        @include('widgets.manage-friend', ['compact' => false])
-                    @endif
                     <h3>Plays: {{ $profile->plays }}</h3>
                 </div>
             </div>

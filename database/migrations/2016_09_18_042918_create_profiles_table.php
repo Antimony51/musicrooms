@@ -19,7 +19,7 @@ class CreateProfilesTable extends Migration
                 ->references('id')
                 ->on('users')
                 ->onDelete('cascade');
-            $table->string('cosmetic_name')->nullable();
+            $table->string('cosmetic_name', 24)->nullable();
             $table->string('icon_large')->nullable();
             $table->string('icon_small')->nullable();
             $table->text('bio')->nullable();

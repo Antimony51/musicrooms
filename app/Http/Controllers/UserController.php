@@ -4,8 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\User;
-use App\Http\Requests;
 use Auth;
+use Validator;
 
 class UserController extends Controller
 {
@@ -54,51 +54,107 @@ class UserController extends Controller
         return view('profile.favorites', compact('user', 'profile', 'favorites', 'mutualFavorites', 'activeTab', 'ownProfile'));
     }
 
+    public function showEditProfile(User $user, Request $request){
+        if ($user->is($request->user())) {
+            $profile = $user->profile;
+            return view('profile.edit', compact('user', 'profile'));
+        }else{
+            abort(403);
+        }
+    }
+
     public function addFavorite(User $user, $id, Request $request){
         if ($user->is($request->user())) {
             $user->favoriteTracks()->attach($id);
+        }else{
+            abort(403);
         }
     }
 
     public function removeFavorite(User $user, $id, Request $request){
         if ($user->is($request->user())) {
             $user->favoriteTracks()->detach($id);
+        } else {
+            abort(403);
         }
     }
 
-    public function updateName(User $user, $newName, Request $request){
+    public function updateProfile(User $user, Request $request)
+    {
+        if ($user->is($request->user())) {
+            $data = collect($request->all())->map(function($item, $key){
+                if ($key == 'cosmetic-name' ||
+                    $key == 'bio')
+                {
+                    return trim($item);
+                }else{
+                    return $item;
+                }
+            })->toArray();
+            $validator = $this->validator($data);
 
+
+            if ($validator->fails()) {
+                $this->throwValidationException(
+                    $request, $validator
+                );
+            }
+
+
+
+            $profile = $user->profile;
+            $profile->bio = $data['bio'];
+            $profile->cosmetic_name = $data['cosmetic-name'];
+            $profile->save();
+
+            return redirect(route('profile', ['user' => $user]));
+        }else{
+            abort(403);
+        }
     }
 
-    public function updateCosmeticName(User $user, $newCosmeticName, Request $request){
-
-    }
-
-    public function updateBio(User $user, $newBio, Request $request){
-
+    protected function validator(array $data)
+    {
+        $validator = Validator::make($data, [
+            'cosmetic-name' => 'max:24',
+            'bio' => ''
+        ]);
+        $validator->setAttributeNames([
+            'cosmetic-name' => 'cosmetic name',
+            'bio' => 'about me'
+        ]);
+        return $validator;
     }
 
     public function addFriend(User $user, Request $request){
         if(!$user->is($request->user())){
             $request->user()->befriend($user);
+        }else{
+            abort(403);
         }
     }
 
     public function removeFriend(User $user, Request $request){
         if(!$user->is($request->user())){
             $request->user()->unfriend($user);
+        }else{
+            abort(403);
         }
     }
 
     public function acceptFriend(User $user, Request $request){
         if(!$user->is($request->user())){
             $request->user()->acceptFriendRequest($user);
+        }else{
+            abort(403);
         }
     }
 
     public function declineFriend(User $user, Request $request){
         if(!$user->is($request->user())){
             $request->user()->denyFriendRequest($user);
+        }else{
+            abort(403);
         }
     }
 }

@@ -1,7 +1,7 @@
 @extends('layouts.profile')
 
 @section('tabcontent')
-    @if(!empty($favorites))
+    @if($favorites->count() > 0)
         <table class="table table-striped">
             <thead>
                 <tr>

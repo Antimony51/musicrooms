@@ -44,10 +44,6 @@ $palette-blue: #475bc0;
   content: "\e005";
 }
 
-.edit-buttons {
-  float: right;
-}
-
 .spinner-small {
   display: inline-block;
   vertical-align: top;
@@ -62,4 +58,16 @@ $palette-blue: #475bc0;
   width: 35px;
   height: 35px;
   background-image: url('/img/spinner-large.gif');
+}
+
+.profile-right-buttons{
+  float: right;
+}
+
+.float-right {
+  float: right;
+}
+
+.float-left {
+  float: left;
 }
