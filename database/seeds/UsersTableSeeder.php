@@ -29,7 +29,13 @@ class UsersTableSeeder extends Seeder
             $favCount = rand(0, 8);
             $tracks = App\Track::inRandomOrder()->take($favCount)->get();
             foreach ($tracks as $track){
-                $user->favoriteTracks()->save($track);
+                $user->favoriteTracks()->attach($track->id);
+            }
+
+            $savedRoomCount = rand(0, 8);
+            $rooms = App\Room::inRandomOrder()->take($savedRoomCount)->get();
+            foreach($rooms as $room){
+                $user->savedRooms()->attach($room->id);
             }
         });
     }

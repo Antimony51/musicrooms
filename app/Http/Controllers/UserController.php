@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\User;
 use Auth;
 use Validator;
+use App\Room;
 
 class UserController extends Controller
 {
@@ -15,11 +16,17 @@ class UserController extends Controller
 
     }
 
+    public function showUserList()
+    {
+        $users = User::paginate(20);
+        return view('user.list', compact('users'));
+    }
+
     public function showOverview(User $user, Request $request){
         $profile = $user->profile;
         $activeTab = 'overview';
         $ownProfile = $user->is($request->user());
-        return view('profile.overview', compact('user', 'profile', 'activeTab', 'ownProfile'));
+        return view('user.overview', compact('user', 'profile', 'activeTab', 'ownProfile'));
     }
 
     public function showFriends(User $user, Request $request){
@@ -37,7 +44,7 @@ class UserController extends Controller
                 }
             });
         }
-        return view('profile.friends', compact('user', 'profile', 'friends', 'pending', 'activeTab', 'ownProfile'));
+        return view('user.friends', compact('user', 'profile', 'friends', 'pending', 'activeTab', 'ownProfile'));
     }
 
     public function showFavorites(User $user, Request $request){
@@ -51,13 +58,21 @@ class UserController extends Controller
         }elseif (Auth::check()){
             $mutualFavorites = $favorites->intersect(Auth::user()->favoriteTracks);
         }
-        return view('profile.favorites', compact('user', 'profile', 'favorites', 'mutualFavorites', 'activeTab', 'ownProfile'));
+        return view('user.favorites', compact('user', 'profile', 'favorites', 'mutualFavorites', 'activeTab', 'ownProfile'));
+    }
+
+    public function showRooms(User $user, Request $request){
+        $profile = $user->profile;
+        $rooms = Room::whereOwnerId($user->id)->whereVisibility('public')->get();
+        $activeTab = 'rooms';
+        $ownProfile = $user->is($request->user());
+        return view('user.rooms', compact('user', 'profile', 'ownProfile', 'activeTab', 'rooms'));
     }
 
     public function showEditProfile(User $user, Request $request){
         if ($user->is($request->user())) {
             $profile = $user->profile;
-            return view('profile.edit', compact('user', 'profile'));
+            return view('user.edit', compact('user', 'profile'));
         }else{
             abort(403);
         }

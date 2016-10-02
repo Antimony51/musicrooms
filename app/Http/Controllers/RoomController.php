@@ -6,84 +6,45 @@ use Illuminate\Http\Request;
 
 use App\Http\Requests;
 use App\Room;
+use Auth;
 
 class RoomController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index()
+    public function showRoom(Room $room)
     {
-        //
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function show($name)
-    {
-        $room = Room::where('name', $name)->first();
         $owner = $room->owner()->first();
         return view('room.main', compact('room', 'owner'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
+    public function showPublicRooms()
     {
-        //
+        $rooms = Room::whereVisibility('public')->paginate(20);
+        $title = "Public Rooms";
+        $emptyMessage = "There are no public rooms.";
+        return view('room.list', compact('rooms', 'title', 'emptyMessage'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, $id)
+    public function showSavedRooms(Request $request)
     {
-        //
+        $rooms = $request->user()->savedRooms()->paginate(20);
+        $title = "Saved Rooms";
+        $emptyMessage = "You have no saved rooms.";
+        return view('room.list', compact('rooms', 'title', 'emptyMessage'));
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy($id)
+    public function showAllRooms()
     {
-        //
+        $rooms = Room::paginate(20);
+        $title = "All Rooms";
+        $emptyMessage = "There are no rooms.";
+        return view('room.list', compact('rooms', 'title', 'emptyMessage'));
+    }
+
+    public function showMyRooms(Request $request)
+    {
+        $rooms = $request->user()->rooms()->paginate(20);
+        $title = "My Rooms";
+        $emptyMessage = "You don't own any rooms.";
+        return view('room.list', compact('rooms', 'title', 'emptyMessage'));
     }
 }

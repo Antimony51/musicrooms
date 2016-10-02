@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests;
 use Illuminate\Http\Request;
+use App\Room;
+use Auth;
 
 class HomeController extends Controller
 {
@@ -22,8 +24,15 @@ class HomeController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        return view('home');
+        $publicRooms = Room::whereVisibility('public')->limit(3)->get();
+        $myRooms = null;
+        $savedRooms = null;
+        if (Auth::check()){
+            $myRooms = $request->user()->rooms()->limit(3)->get();
+            $savedRooms = $request->user()->savedRooms()->limit(3)->get();
+        }
+        return view('home', compact('publicRooms', 'myRooms', 'savedRooms'));
     }
 }

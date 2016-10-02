@@ -48,4 +48,8 @@ class User extends Authenticatable
     public function favoriteTracks(){
         return $this->belongsToMany('App\Track', 'favorites');
     }
+
+    public function savedRooms(){
+        return $this->belongsToMany('App\Room', 'saved_rooms');
+    }
 }

@@ -15,6 +15,22 @@ $palette-heartred: #ff2c6d;
 $palette-green: #2fd127;
 $palette-blue: #475bc0;
 
+.color-red {
+  color: $palette-red;
+}
+
+.color-heartred {
+  color: $palette-heartred;
+}
+
+.color-green {
+  color: $palette-green;
+}
+
+.color-blue {
+  color: $palette-blue;
+}
+
 .favorite-heart {
   position: relative;
   top: 1px;

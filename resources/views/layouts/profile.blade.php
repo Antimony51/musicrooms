@@ -1,4 +1,9 @@
 @extends('layouts/app')
+
+{{--
+VARS:
+$user, $profile, $ownProfile, $activeTab
+--}}
 @section('content')
     <script>
         app.currentProfile = {
@@ -11,7 +16,7 @@
         <div class="panel-body">
             <div class="profile-right-buttons">
                 @if($ownProfile)
-                    <a href="{{ route('showEditProfile', ['user' => $user]) }}" class="btn btn-default">Edit</a>
+                    <a href="{{ route('editProfile', ['user' => $user]) }}" class="btn btn-default">Edit</a>
                 @endif
                 @if(!$ownProfile && Auth::check())
                     @include('widgets.manage-friend', ['compact' => false])
@@ -35,6 +40,7 @@
             <li class="{{ ($activeTab == 'overview') ? 'active' : '' }}"><a href="{{ route('profileOverview', ['name' => $user->name]) }}">Overview</a></li>
             <li class="{{ ($activeTab == 'favorites') ? 'active' : '' }}"><a href="{{ route('profileFavorites', ['name' => $user->name]) }}">Favorites</a></li>
             <li class="{{ ($activeTab == 'friends') ? 'active' : '' }}"><a href="{{ route('profileFriends', ['name' => $user->name]) }}">Friends</a></li>
+            <li class="{{ ($activeTab == 'rooms') ? 'active' : '' }}"><a href="{{ route('profileRooms', ['name' => $user->name]) }}">Rooms</a></li>
         </ul>
     </nav>
     <div class="tab-content panel panel-default tabbed-panel">

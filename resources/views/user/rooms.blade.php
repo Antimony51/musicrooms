@@ -1,8 +1,8 @@
 @extends('layouts.profile')
 
 @section('tabcontent')
-    @forelse($rooms as $index => $room)
-
+    @forelse($rooms as $room)
+        @include('widgets.roomtoken')
     @empty
         This user has no public rooms.
     @endforelse
