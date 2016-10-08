@@ -7,13 +7,13 @@ use Illuminate\Http\Request;
 use App\Http\Requests;
 use App\Room;
 use Auth;
+use Cache;
 
 class RoomController extends Controller
 {
-    public function showRoom(Room $room)
+    public function show(Room $room, Request $request)
     {
-        $owner = $room->owner()->first();
-        return view('room.main', compact('room', 'owner'));
+        return view('room.main', compact('room'));
     }
 
     public function showPublicRooms()
@@ -46,5 +46,30 @@ class RoomController extends Controller
         $title = "My Rooms";
         $emptyMessage = "You don't own any rooms.";
         return view('room.list', compact('rooms', 'title', 'emptyMessage'));
+    }
+
+    protected function getRoomState(Room $room, Request $request){
+        return (array) Cache::get('room_' . $room->id);
+    }
+
+    public function syncMe (Room $room, Request $request){
+        return $this->getRoomState($room, $request);
+    }
+
+    public function join (Room $room, Request $request){
+        if (Auth::check()) {
+            $roomState = Cache::get('room_' . $room->id);
+            $roomState->userJoin($request->user()->id);
+            Cache::forever('room_' . $room->id, $roomState);
+        }
+        return $this->getRoomState($room, $request);
+    }
+
+    public function leave (Room $room, Request $request){
+        if (Auth::check()) {
+            $roomState = Cache::get('room_'. $room->id);
+            $roomState->userLeave($request->user()->id);
+            Cache::forever('room_' . $room->id, $roomState);
+        }
     }
 }

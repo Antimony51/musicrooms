@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\User;
 use Auth;
+use Cache;
 use Validator;
 use App\Room;
 
@@ -40,6 +41,7 @@ class UserController extends Controller
                 if ($friendship->sender->is($user)){
                     return $friendship->recipient;
                 }else{
+                    Cache::get('asdf');
                     return $friendship->sender;
                 }
             });

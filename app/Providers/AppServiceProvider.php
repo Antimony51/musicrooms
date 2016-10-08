@@ -4,6 +4,10 @@ namespace App\Providers;
 
 use Validator;
 use Illuminate\Support\ServiceProvider;
+use App\Room;
+use App\RoomState;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -17,6 +21,16 @@ class AppServiceProvider extends ServiceProvider
         Validator::extend('username_chars', function($attribute, $value, $parameters, $validator) {
             return preg_match('/^[a-zA-Z0-9_.-]+$/', $value) === 1;
         });
+
+        Room::created(function($room){
+            $roomState = new RoomState($room->id);
+            Cache::forever('room_'.$room->id, $roomState);
+        });
+
+        Room::deleted(function($room){
+            Cache::forget('room_'.$room->id);
+        });
+
     }
 
     /**

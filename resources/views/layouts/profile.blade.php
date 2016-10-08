@@ -4,7 +4,8 @@
 VARS:
 $user, $profile, $ownProfile, $activeTab
 --}}
-@section('content')
+
+@push('scripts_before')
     <script>
         app.currentProfile = {
             name: "{{ $user->name }}",
@@ -12,6 +13,9 @@ $user, $profile, $ownProfile, $activeTab
             displayName: "{{$user->displayName()}}"
         }
     </script>
+@endpush
+
+@section('content')
     <div class="panel panel-default">
         <div class="panel-body">
             <div class="profile-right-buttons">

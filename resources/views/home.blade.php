@@ -3,7 +3,7 @@
 @section('content')
 <div class="container">
     <div class="row">
-        <div class="col-md-5 col-md-offset-1" style="height: 100%">
+        <div class="col-md-6">
             <div class="panel panel-default">
                 <div class="panel-heading">
                     Create a room
@@ -13,7 +13,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-5" style="height: 100%">
+        <div class="col-md-6">
             <div class="panel panel-default">
                 <div class="panel-heading">
                     Join a room
@@ -33,7 +33,7 @@
     </div>
     @if(Auth::check())
         <div class="row">
-            <div class="col-md-5 col-md-offset-1">
+            <div class="col-md-6">
                 <div class="panel panel-default">
                     <div class="panel-heading">
                         My Rooms
@@ -50,7 +50,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-5">
+            <div class="col-md-6">
                 <div class="panel panel-default">
                     <div class="panel-heading">
                         Saved Rooms

@@ -28,6 +28,8 @@
             csrf_token: "{{ csrf_token() }}"
         }
     </script>
+
+    @stack('scripts_before');
 </head>
 <body id="app-layout">
     <nav class="navbar navbar-default navbar-static-top">
@@ -85,5 +87,6 @@
     </div>
 
     <script src="{{ asset('js/app.js') }}"></script>
+    @stack('scripts_after')
 </body>
 </html>

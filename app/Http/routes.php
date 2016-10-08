@@ -15,8 +15,13 @@ Route::group(['prefix' => 'user/{user}'], function(){
 Route::get('admin/users', 'UserController@showUserList');
 Route::get('admin/rooms', 'RoomController@showAllRooms');
 
-Route::get('room/{room}', 'RoomController@showRoom')->name('room');
 Route::get('rooms', 'RoomController@showPublicRooms')->name('publicRooms');
+Route::group(['prefix' => 'room/{room}'], function(){
+    Route::get('', 'RoomController@show')->name('room');
+    Route::get('syncme', 'RoomController@syncMe')->name('syncMe');
+    Route::get('join', 'RoomController@join')->name('joinRoom');
+    Route::get('leave', 'RoomController@leave')->name('leaveRoom');
+});
 
 Route::group(['middleware' => 'auth'], function(){
     Route::group(['prefix' => 'user/{user}'], function(){
