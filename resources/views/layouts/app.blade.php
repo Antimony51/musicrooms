@@ -19,17 +19,15 @@
         app = {
             currentUser:
             @if (Auth::check())
-                {
-                    name: '{{ Auth::user()->name }}'
-                },
+                {!! json_encode(Auth::user()) !!}
             @else
-                null,
-            @endif
+                null
+            @endif,
             csrf_token: "{{ csrf_token() }}"
         }
     </script>
 
-    @stack('scripts_before');
+    @stack('scripts_before')
 </head>
 <body id="app-layout">
     <nav class="navbar navbar-default navbar-static-top">
@@ -80,7 +78,7 @@
     </nav>
     <div class="container">
         <div class="row">
-            <div class="col-md-12 col-md-offset-0">
+            <div id="content" class="col-md-12 col-md-offset-0">
                 @yield('content')
             </div>
         </div>

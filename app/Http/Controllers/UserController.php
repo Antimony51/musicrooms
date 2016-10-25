@@ -124,7 +124,7 @@ class UserController extends Controller
             $profile->cosmetic_name = $data['cosmetic-name'];
             $profile->save();
 
-            return redirect(route('profile', ['user' => $user]));
+            return redirect(route('user', ['user' => $user]));
         }else{
             abort(403);
         }

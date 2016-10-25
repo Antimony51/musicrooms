@@ -10,6 +10,7 @@ Route::group(['prefix' => 'user/{user}'], function(){
     Route::get('favorites', 'UserController@showFavorites')->name('profileFavorites');
     Route::get('friends', 'UserController@showFriends')->name('profileFriends');
     Route::get('rooms', 'UserController@showRooms')->name('profileRooms');
+    Route::get('data', function(App\User $user) {return $user;});
 });
 
 Route::get('admin/users', 'UserController@showUserList');
@@ -19,9 +20,14 @@ Route::get('rooms', 'RoomController@showPublicRooms')->name('publicRooms');
 Route::group(['prefix' => 'room/{room}'], function(){
     Route::get('', 'RoomController@show')->name('room');
     Route::get('syncme', 'RoomController@syncMe')->name('syncMe');
-    Route::get('join', 'RoomController@join')->name('joinRoom');
-    Route::get('leave', 'RoomController@leave')->name('leaveRoom');
+    Route::post('join', 'RoomController@join')->name('joinRoom');
+    Route::post('leave', 'RoomController@leave')->name('leaveRoom');
+    Route::get('data', function(App\Room $room) {return $room;});
+    Route::get('userdata', 'RoomController@getUserData');
+    Route::get('trackdata', 'RoomController@getTrackData');
 });
+
+Route::get('track/{track}/data', function(App\Track $track) {return $track;});
 
 Route::group(['middleware' => 'auth'], function(){
     Route::group(['prefix' => 'user/{user}'], function(){

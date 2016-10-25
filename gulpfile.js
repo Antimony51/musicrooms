@@ -11,8 +11,16 @@ var elixir = require('laravel-elixir');
  |
  */
 
+elixir.config.js.browserify.transformers
+    .find(transformer => transformer.name === 'babelify')
+    .options.plugins = [
+        'transform-class-properties'
+    ];
+
 elixir(function(mix) {
     mix.sass('app.scss')
-        .browserify('app.js');
+        .browserify('app.js')
+        .browserify('room.js');
     mix.copy('node_modules/bootstrap-sass/assets/fonts/bootstrap/','public/fonts/bootstrap');
+    mix.copy('node_modules/font-awesome/fonts/', 'public/fonts/font-awesome');
 });

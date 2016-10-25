@@ -22,10 +22,10 @@ class AppServiceProvider extends ServiceProvider
             return preg_match('/^[a-zA-Z0-9_.-]+$/', $value) === 1;
         });
 
-        Room::created(function($room){
-            $roomState = new RoomState($room->id);
-            Cache::forever('room_'.$room->id, $roomState);
-        });
+//        Room::created(function($room){
+//            $roomState = new RoomState($room->id);
+//            Cache::forever('room_'.$room->id, $roomState);
+//        });
 
         Room::deleted(function($room){
             Cache::forget('room_'.$room->id);

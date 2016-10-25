@@ -14,13 +14,13 @@ class User extends Authenticatable
     protected $fillable = [
         'name', 'email', 'password',
     ];
-    /**
-     * The attributes that should be hidden for arrays.
-     *
-     * @var array
-     */
-    protected $hidden = [
-        'password', 'remember_token',
+
+    protected $visible = [
+        'name', 'displayName', 'iconSmall', 'iconLarge'
+    ];
+
+    protected $appends = [
+        'displayName', 'iconSmall', 'iconLarge'
     ];
 
     /**
@@ -51,5 +51,25 @@ class User extends Authenticatable
 
     public function savedRooms(){
         return $this->belongsToMany('App\Room', 'saved_rooms');
+    }
+
+    public function iconSmall(){
+        return $this->profile->iconSmall();
+    }
+
+    public function iconLarge(){
+        return $this->profile->iconLarge();
+    }
+
+    public function getDisplayNameAttribute(){
+        return $this->displayName();
+    }
+
+    public function getIconSmallAttribute(){
+        return $this->iconSmall();
+    }
+
+    public function getIconLargeAttribute(){
+        return $this->iconLarge();
     }
 }

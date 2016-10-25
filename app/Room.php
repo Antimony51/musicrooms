@@ -10,6 +10,14 @@ class Room extends Model
         'name', 'visibility', 'title', 'description', 'current_track_id'
     ];
 
+    protected $visible = [
+        'name', 'visibility', 'title', 'description', 'owner', 'current_track_id'
+    ];
+
+    protected $appends = [
+        'owner'
+    ];
+
     public function getRouteKeyName()
     {
         return 'name';
@@ -21,5 +29,9 @@ class Room extends Model
 
     public function currentTrack(){
         return $this->belongsTo('App\Track', 'current_track_id');
+    }
+
+    public function getOwnerAttribute(){
+        return $this->owner()->first()->makeHidden(['iconSmall', 'iconLarge']);
     }
 }

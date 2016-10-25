@@ -3,6 +3,8 @@ $font-family-sans-serif: 'Lato', sans-serif;
 @import "node_modules/bootstrap-sass/assets/stylesheets/bootstrap";
 @import "node_modules/alertifyjs/build/css/alertify";
 @import "node_modules/alertifyjs/build/css/themes/default";
+$fa-font-path: "../fonts/font-awesome";
+@import "node_modules/font-awesome/scss/font-awesome";
 
 .tabbed-panel {
   border-top: none;
@@ -14,6 +16,9 @@ $palette-red: #ff0000;
 $palette-heartred: #ff2c6d;
 $palette-green: #2fd127;
 $palette-blue: #475bc0;
+
+$user-icon-small-size: 48px;
+$user-icon-large-size: 200px;
 
 .color-red {
   color: $palette-red;
@@ -31,49 +36,31 @@ $palette-blue: #475bc0;
   color: $palette-blue;
 }
 
-.favorite-heart {
-  position: relative;
-  top: 1px;
-  display: inline-block;
-  font-family: 'Glyphicons Halflings';
-  font-style: normal;
-  font-weight: normal;
-  line-height: 1;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+.favorite-heart:not(.spinner) {
   cursor: pointer;
-
-  width: 15px;
-  height: 15px;
-  font-size: 15px;
 }
 
-.favorite-heart.checked {
+
+.favorite-heart:not(.spinner) {
+  @extend .fa;
+  @extend .fa-heart-o;
+}
+
+.favorite-heart.checked:not(.spinner) {
+  @extend .fa;
+  @extend .fa-heart;
   color: $palette-heartred;
 }
 
-.favorite-heart:not(.spinner-small):before {
-  content: "\e143";
-}
-
-.favorite-heart.checked:not(.spinner-small):before {
-  content: "\e005";
-}
-
-.spinner-small {
-  display: inline-block;
-  vertical-align: top;
-  width: 15px;
-  height: 15px;
-  background-image: url('/img/spinner-small.gif');
+.spinner {
+  @extend .fa;
+  @extend .fa-spin;
+  @extend .fa-spinner;
+  vertical-align: middle;
 }
 
 .spinner-large {
-  display: inline-block;
-  vertical-align: top;
-  width: 35px;
-  height: 35px;
-  background-image: url('/img/spinner-large.gif');
+  @extend .fa-2x;
 }
 
 .profile-right-buttons{
@@ -86,4 +73,14 @@ $palette-blue: #475bc0;
 
 .float-left {
   float: left;
+}
+
+.user-icon-small {
+  width: $user-icon-small-size;
+  height: $user-icon-small-size;
+}
+
+.user-icon-large {
+  width: $user-icon-large-size;
+  height: $user-icon-large-size;
 }

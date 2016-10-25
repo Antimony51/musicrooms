@@ -6,7 +6,19 @@ use Illuminate\Database\Eloquent\Model;
 
 class Track extends Model
 {
-    const TYPE_FILE = 0;
-    const TYPE_YOUTUBE = 1;
-    const TYPE_SOUNDCLOUD = 2;
+    protected $visible = [
+        'id', 'url', 'title', 'artist', 'album', 'type', 'duration'
+    ];
+
+    public function getData(){
+        return [
+            'id' => $this->id,
+            'url' => $this->url,
+            'title' => $this->title,
+            'artist' => $this->artist,
+            'album' => $this->album,
+            'type' => $this->type,
+            'duration' => $this->duration
+        ];
+    }
 }

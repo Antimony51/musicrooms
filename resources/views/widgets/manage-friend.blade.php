@@ -29,5 +29,5 @@
     <button type="button" class="btn {{ $compact ? "btn-xs" : ""  }} btn-success addfriend {{ $show_addfriend ? '' : 'hidden' }}">
         {{ $compact ? "Add" : "Add Friend"}}
     </button>
-    <span class="spinner {{ $compact ? "spinner-small" : "spinner-large"  }} hidden"></span>
+    <span class="spinner {{ $compact ? "spinner" : "spinner-large"  }} hidden"></span>
 </span>
