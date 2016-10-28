@@ -7,7 +7,7 @@
         </div>
         <div class="panel-body">
             @foreach($users as $user)
-                @include('widgets.usertoken')
+                @include('widgets.useritem')
             @endforeach
 
             <div class="text-center">{{ $users->links() }}</div>

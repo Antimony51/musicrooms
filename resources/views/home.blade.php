@@ -21,7 +21,7 @@
                 <div class="panel-body">
                     @if (!empty($publicRooms))
                         @foreach($publicRooms as $room)
-                            @include('widgets.roomtoken')
+                            @include('widgets.roomitem')
                         @endforeach
                     @else
                         There are no public rooms.
@@ -41,7 +41,7 @@
                     <div class="panel-body">
                         @if (!empty($myRooms))
                             @foreach($myRooms as $room)
-                                @include('widgets.roomtoken')
+                                @include('widgets.roomitem')
                             @endforeach
                         @else
                             You don't own any rooms.
@@ -58,7 +58,7 @@
                     <div class="panel-body">
                         @if (!empty($savedRooms))
                             @foreach($savedRooms as $room)
-                                @include('widgets.roomtoken')
+                                @include('widgets.roomitem')
                             @endforeach
                         @else
                             You have not saved any rooms.

@@ -13,7 +13,7 @@
                 <div class="row">
             @endif
                 <div class="col-md-4">
-                    @include('widgets.usertoken', ['user' => $pendingFriend])
+                    @include('widgets.useritem', ['user' => $pendingFriend])
                 </div>
             @if($i % 3 == 2 || $i == $count-1)
                 </div>
@@ -25,7 +25,7 @@
                 <div class="row">
             @endif
                 <div class="col-md-4">
-                    @include('widgets.usertoken', ['user' => $friend])
+                    @include('widgets.useritem', ['user' => $friend])
                 </div>
             @if($i % 3 == 2 || $i == $count-1)
                 </div>

@@ -146,6 +146,7 @@ class UserController extends Controller
     public function addFriend(User $user, Request $request){
         if(!$user->is($request->user())){
             $request->user()->befriend($user);
+            return $user;
         }else{
             abort(403);
         }
@@ -154,6 +155,7 @@ class UserController extends Controller
     public function removeFriend(User $user, Request $request){
         if(!$user->is($request->user())){
             $request->user()->unfriend($user);
+            return $user;
         }else{
             abort(403);
         }
@@ -162,6 +164,7 @@ class UserController extends Controller
     public function acceptFriend(User $user, Request $request){
         if(!$user->is($request->user())){
             $request->user()->acceptFriendRequest($user);
+            return $user;
         }else{
             abort(403);
         }
@@ -170,6 +173,7 @@ class UserController extends Controller
     public function declineFriend(User $user, Request $request){
         if(!$user->is($request->user())){
             $request->user()->denyFriendRequest($user);
+            return $user;
         }else{
             abort(403);
         }

@@ -2,6 +2,7 @@
 namespace App;
 use Hootlex\Friendships\Traits\Friendable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Auth;
 class User extends Authenticatable
 {
     use Friendable, Comparable;
@@ -16,11 +17,11 @@ class User extends Authenticatable
     ];
 
     protected $visible = [
-        'name', 'displayName', 'iconSmall', 'iconLarge'
+        'name', 'displayName', 'iconSmall', 'iconLarge', 'friendStatus'
     ];
 
     protected $appends = [
-        'displayName', 'iconSmall', 'iconLarge'
+        'displayName', 'iconSmall', 'iconLarge', 'friendStatus'
     ];
 
     /**
@@ -61,6 +62,23 @@ class User extends Authenticatable
         return $this->profile->iconLarge();
     }
 
+    public function friendStatus(){
+        $user = Auth::user();
+        if (Auth::check() && !$this->is($user)){
+            if ($this->isFriendWith($user)){
+                return 'friend';
+            }else if ($this->hasFriendRequestFrom($user)){
+                return 'request_sent';
+            }else if ($this->hasSentFriendRequestTo($user)){
+                return 'request_received';
+            }else{
+                return 'can_add';
+            }
+        }else{
+            return null;
+        }
+    }
+
     public function getDisplayNameAttribute(){
         return $this->displayName();
     }
@@ -71,5 +89,9 @@ class User extends Authenticatable
 
     public function getIconLargeAttribute(){
         return $this->iconLarge();
+    }
+
+    public function getFriendStatusAttribute(){
+        return $this->friendStatus();
     }
 }

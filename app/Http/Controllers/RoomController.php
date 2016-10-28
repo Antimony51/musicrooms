@@ -76,7 +76,7 @@ class RoomController extends Controller
         }
     }
 
-    public function getUserData (Room $room, Request $request){
+    public function getData (Room $room, Request $request){
         $roomState = RoomState::get($room);
         $data = [];
 
@@ -89,13 +89,6 @@ class RoomController extends Controller
             }
         }
 
-        return $data;
-    }
-
-    public function getTrackData (Room $room, Request $request){
-        $roomState = RoomState::get($room);
-        $data = [];
-
         if ($request->has('tracks')){
             $data['tracks'] = [];
             foreach( $request->input('tracks') as $trackId){
@@ -104,6 +97,7 @@ class RoomController extends Controller
                 }
             }
         }
+
         return $data;
     }
 }

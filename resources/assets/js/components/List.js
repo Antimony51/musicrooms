@@ -6,8 +6,10 @@ module.exports = class List extends React.Component {
         return (
             <div>
                 {
-                    this.props.items.map((item, key) => (
-                        <div key={key}>{item}</div>
+                    this.props.items.map((item) => (
+                        <div key={this.props['item-key'].split('.').reduce((a,b) => a[b], item)}>
+                            {item}
+                        </div>
                     ))
                 }
             </div>

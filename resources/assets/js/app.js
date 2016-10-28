@@ -1,10 +1,10 @@
+require('babel-polyfill');
 window.$ = window.jQuery = require('jquery');
 require('bootstrap-sass');
 window.alertify = require('alertifyjs');
 window.bootbox = require('bootbox');
 
-window._ = require('lodash/core');
-window._.escape = require('lodash/escape');
+window._ = require('lodash');
 
 window.PubSub = require('pubsub-js');
 
@@ -14,12 +14,12 @@ function leftPad(n, width, z) {
     return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
 }
 
-function durationString($duration){
-    var hour = Math.floor($duration/216000);
-    $duration -= hour;
-    var min = Math.floor($duration/3600);
-    $duration -= min;
-    var sec = Math.floor($duration/60);
+function durationString(duration){
+    var hour = Math.floor(duration/216000);
+    duration -= hour;
+    var min = Math.floor(duration/3600);
+    duration -= min;
+    var sec = Math.floor(duration/60);
     return ((hour > 0) ? (hour + ':' + leftPad(min, 2)) : min) + ':' + leftPad(sec, 2);
 }
 

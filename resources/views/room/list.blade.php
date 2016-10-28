@@ -8,7 +8,7 @@
         <div class="panel-body">
             @if (!empty($rooms))
                 @foreach($rooms as $room)
-                    @include('widgets.roomtoken')
+                    @include('widgets.roomitem')
                 @endforeach
 
                 <div class="text-center">{{ $rooms->links() }}</div>

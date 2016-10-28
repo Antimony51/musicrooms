@@ -23,8 +23,7 @@ Route::group(['prefix' => 'room/{room}'], function(){
     Route::post('join', 'RoomController@join')->name('joinRoom');
     Route::post('leave', 'RoomController@leave')->name('leaveRoom');
     Route::get('data', function(App\Room $room) {return $room;});
-    Route::get('userdata', 'RoomController@getUserData');
-    Route::get('trackdata', 'RoomController@getTrackData');
+    Route::get('getdata', 'RoomController@getData');
 });
 
 Route::get('track/{track}/data', function(App\Track $track) {return $track;});
@@ -35,6 +34,7 @@ Route::group(['middleware' => 'auth'], function(){
         Route::post('favorites/remove/{id}', 'UserController@removeFavorite');
         Route::post('addfriend', 'UserController@addFriend');
         Route::post('removefriend', 'UserController@removeFriend');
+        Route::post('cancelrequest', 'UserController@removeFriend');
         Route::post('acceptfriend', 'UserController@acceptFriend');
         Route::post('declinefriend', 'UserController@declineFriend');
         Route::post('updateprofile', 'UserController@updateProfile')->name('updateProfile');

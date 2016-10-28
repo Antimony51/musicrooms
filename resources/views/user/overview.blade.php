@@ -6,6 +6,6 @@
 
     @if(!empty($profile->bio))
         <h3>About Me</h3>
-        <p>{{ $profile->bio }}</p>
+        <p>{!! nl2br(htmlentities($profile->bio)) !!}</p>
     @endif
 @endsection

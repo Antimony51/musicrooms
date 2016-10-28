@@ -135,6 +135,9 @@ class RoomState
     }
 
     public function advanceQueue(){
+        if (!in_array($this->currentTrack, $this->queue)){
+            unset($this->trackMeta[$this->currentTrack]);
+        }
         $this->currentTrack = array_shift($this->queue);
         $now = microtime(true);
         $this->currentTrack_timestamp = $now;
