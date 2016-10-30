@@ -3,16 +3,13 @@ window.$ = window.jQuery = require('jquery');
 require('bootstrap-sass');
 window.alertify = require('alertifyjs');
 window.bootbox = require('bootbox');
-
 window._ = require('lodash');
-
 window.PubSub = require('pubsub-js');
+window.URI = require('urijs');
+window.moment = require('moment');
 
-function leftPad(n, width, z) {
-    z = z || '0';
-    n = n + '';
-    return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
-}
+app.soundcloud_client_id = '6664a1491a47ae122f4d8a53aa407731';
+app.youtube_api_key = 'AIzaSyAeFmwIvkasYmH-ZGYRY2WrBnRLUsG2rsM';
 
 function durationString(duration){
     var hour = Math.floor(duration/216000);
@@ -20,7 +17,7 @@ function durationString(duration){
     var min = Math.floor(duration/3600);
     duration -= min;
     var sec = Math.floor(duration/60);
-    return ((hour > 0) ? (hour + ':' + leftPad(min, 2)) : min) + ':' + leftPad(sec, 2);
+    return ((hour > 0) ? (hour + ':' + _.padStart(min, 2, '0')) : min) + ':' + _.padStart(sec, 2, '0');
 }
 
 $( document ).ready(function() {

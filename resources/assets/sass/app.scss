@@ -6,16 +6,13 @@ $font-family-sans-serif: 'Lato', sans-serif;
 $fa-font-path: "../fonts/font-awesome";
 @import "node_modules/font-awesome/scss/font-awesome";
 
-.tabbed-panel {
-  border-top: none;
-  border-top-left-radius: 0;
-  border-top-right-radius: 0;
-}
-
 $palette-red: #ff0000;
 $palette-heartred: #ff2c6d;
 $palette-green: #2fd127;
 $palette-blue: #475bc0;
+
+$palette-youtube: #e62117;
+$palette-soundcloud: #f50;
 
 $user-icon-small-size: 48px;
 $user-icon-large-size: 200px;
@@ -36,10 +33,23 @@ $user-icon-large-size: 200px;
   color: $palette-blue;
 }
 
+.color-youtube {
+  color: $palette-youtube;
+}
+
+.color-soundcloud {
+  color: $palette-soundcloud;
+}
+
+.tabbed-panel {
+  border-top: none;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
 .favorite-heart:not(.spinner) {
   cursor: pointer;
 }
-
 
 .favorite-heart:not(.spinner) {
   @extend .fa;

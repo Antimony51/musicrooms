@@ -40,9 +40,7 @@ module.exports = class Room extends React.Component {
                 url: `/room/${app.currentRoom.name}/getdata`,
                 method: 'get',
                 dataType: 'json',
-                data: request,
-                //data: JSON.stringify(_.assign({}, request, {_token: app.csrf_token})),
-                contentType: 'application/json; charset=utf-8',
+                data: request
             })
                 .done(function (data) {
                     callback(data);
@@ -200,6 +198,7 @@ module.exports = class Room extends React.Component {
                         <div className="col-md-4">
                             <div className="panel panel-default queue-panel">
                                 <div className="panel-heading">
+                                    <AddTrackButton className="pull-right" buttonClass="btn-xs" />
                                     <div className="panel-title">Queue</div>
                                 </div>
                                 <Queue tracks={this.state.queue}/>

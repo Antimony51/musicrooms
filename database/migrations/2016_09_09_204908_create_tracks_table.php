@@ -15,12 +15,13 @@ class CreateTracksTable extends Migration
         Schema::create('tracks', function (Blueprint $table) {
             $table->increments('id');
             $table->enum('type', ['file', 'youtube', 'soundcloud']);
-            $table->text('url');
+            $table->text('uri');
             $table->text('title')->nullable();
             $table->text('artist')->nullable();
             $table->text('album')->nullable();
             $table->double('duration');
             $table->timestamps();
+            $table->unique(['type', 'uri']);
         });
     }
 

@@ -13,9 +13,6 @@ class RoomState
     public $users = [];
     public $queue = [];
     public $currentTrack = null;
-    public $users_timestamp;
-    public $queue_timestamp;
-    public $currentTrack_timestamp;
 
     public $trackMeta = [];
     public $userMeta = [];
@@ -35,7 +32,6 @@ class RoomState
         }
         if ($usersChanged){
             $state->users = array_values($state->users);
-            $state->users_timestamp = microtime(true);
         }
 
         return $state;
@@ -48,10 +44,6 @@ class RoomState
     public function __construct($roomId)
     {
         $this->id = $roomId;
-        $now = microtime(true);
-        $this->users_timestamp = $now;
-        $this->queue_timestamp = $now;
-        $this->currentTrack_timestamp = $now;
     }
 
     public function hasUser($userName){
@@ -61,7 +53,6 @@ class RoomState
     public function userJoin($userName){
         if (!$this->hasUser($userName)) {
             array_push($this->users, $userName);
-            $this->users_timestamp = microtime(true);
             $meta = new UserMeta();
             $meta->seen();
             $this->userMeta[$userName] = $meta;
@@ -80,7 +71,6 @@ class RoomState
         }
         if($changed) {
             $this->users = array_values($this->users);
-            $this->users_timestamp = microtime(true);
         }
     }
 
@@ -102,10 +92,8 @@ class RoomState
             }
             if ( is_null($this->currentTrack) ){
                 $this->currentTrack = $trackId;
-                $this->currentTrack_timestamp = microtime(true);
             } else if (!$this->hasTrack($trackId)) {
                 array_push($this->queue, $trackId);
-                $this->queue_timestamp = microtime(true);
             }else{
                 return false;
             }
@@ -128,7 +116,6 @@ class RoomState
         }
         if($changed) {
             $this->queue = array_values($this->queue);
-            $this->queue_timestamp = microtime(true);
             return true;
         }
         return false;
@@ -139,8 +126,5 @@ class RoomState
             unset($this->trackMeta[$this->currentTrack]);
         }
         $this->currentTrack = array_shift($this->queue);
-        $now = microtime(true);
-        $this->currentTrack_timestamp = $now;
-        $this->queue_timestamp = $now;
     }
 }

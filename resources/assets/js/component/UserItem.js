@@ -1,6 +1,6 @@
 var React = require('react');
 
-module.exports = class User extends React.Component {
+module.exports = class UserItem extends React.Component {
     static propTypes = {
         user: React.PropTypes.oneOfType([
             React.PropTypes.string,

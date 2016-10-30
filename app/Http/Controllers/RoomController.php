@@ -76,6 +76,16 @@ class RoomController extends Controller
         }
     }
 
+    public function addTrack (Room $room, Request $request){
+        if (Auth::check()) {
+            $user = $request->user();
+            $roomState = RoomState::get($room);
+            if ($roomState->hasUser($user)){
+
+            }
+        }
+    }
+
     public function getData (Room $room, Request $request){
         $roomState = RoomState::get($room);
         $data = [];
