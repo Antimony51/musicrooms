@@ -5,7 +5,7 @@ namespace App;
 
 class UserMeta
 {
-    public $lastSeen = null;
+    private $lastSeen = null;
 
     public function seen(){
         $this->lastSeen = microtime(true);

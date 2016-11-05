@@ -1,8 +1,9 @@
 var nextId = -1;
 
-module.exports = class Track {
+class Track {
     id = null;
     uri = null;
+    link = null;
     title = null;
     artist = null;
     album = null;
@@ -19,3 +20,5 @@ module.exports = class Track {
         this.owner = this.owner || app.currentUser;
     }
 };
+
+export default Track;

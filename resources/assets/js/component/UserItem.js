@@ -1,6 +1,6 @@
-var React = require('react');
+import React from 'react';
 
-module.exports = class UserItem extends React.Component {
+class UserItem extends React.Component {
     static propTypes = {
         user: React.PropTypes.oneOfType([
             React.PropTypes.string,
@@ -60,4 +60,6 @@ module.exports = class UserItem extends React.Component {
             </div>
         );
     }
-};
+}
+
+export default UserItem;

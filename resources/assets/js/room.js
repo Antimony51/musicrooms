@@ -1,6 +1,6 @@
-var React = require('react');
-var ReactDOM = require('react-dom');
-var Room = require('./component/Room');
+import React from 'react';
+import ReactDOM from 'react-dom';
+import Room from './component/Room';
 
 var content = document.getElementById('content');
 var unmount = function (){

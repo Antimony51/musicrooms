@@ -1,6 +1,6 @@
-var React = require('react');
-var Modal = require('react-modal');
-var PickLink = require('./PickLink');
+import React from 'react';
+import Modal from 'react-modal';
+import PickLink from './PickLink';
 
 const modalStyle = {
     overlay: {
@@ -24,7 +24,7 @@ const panelStyle = {
     minWidth: '200px'
 }
 
-module.exports = class UserList extends React.Component {
+class AddTrackButton extends React.Component {
 
     constructor(props){
         super(props);
@@ -60,8 +60,19 @@ module.exports = class UserList extends React.Component {
     };
 
     handleOnSelectLink = (track) => {
-        console.log(track);
-    }
+        this.closeModal();
+        $.ajax({
+            url: '/room/' + app.currentRoom.name + '/addtrack',
+            method: 'post',
+            data: {
+                type: track.type,
+                uri: track.uri
+            }
+        })
+            .fail(() => {
+                alertify.alert('Error', 'Failed to add track.');
+            });
+    };
 
     changeTab (tab) {
         if (this.state.selectedTab != tab){
@@ -118,3 +129,5 @@ module.exports = class UserList extends React.Component {
         );
     }
 }
+
+export default AddTrackButton;

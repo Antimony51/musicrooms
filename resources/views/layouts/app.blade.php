@@ -23,7 +23,9 @@
             @else
                 null
             @endif,
-            csrf_token: "{{ csrf_token() }}"
+            csrf_token: '{{ csrf_token() }}',
+            soundcloud_client_id: '{{ config('services.soundcloud.client_id') }}',
+            youtube_api_key: '{{ config('services.youtube.key') }}',
         }
     </script>
 

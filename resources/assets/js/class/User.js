@@ -1,4 +1,4 @@
-module.exports = class User {
+class User {
     name = null,
     displayName = null,
     iconSmall = null,
@@ -11,3 +11,5 @@ module.exports = class User {
         }
     }
 }
+
+export default User;

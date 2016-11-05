@@ -7,15 +7,20 @@ use Carbon\Carbon;
 use Auth;
 use Cache;
 
-class RoomState
-{
-    public $id;
+class RoomState {
+
+    private $id;
     public $users = [];
     public $queue = [];
     public $currentTrack = null;
+    public $seek = 0;
+    private $currentTrackStart = 0;
+    private $currentTrackEnd = 0;
+    public $currentTrackMeta = null;
 
-    public $trackMeta = [];
-    public $userMeta = [];
+    public $queueMeta = [];
+    private $userMeta = [];
+    private $shouldUpdateDb = false;
 
     public static function get(Room $room){
         $state = Cache::rememberForever('room_' . $room->id, function() use ($room){
@@ -38,7 +43,13 @@ class RoomState
     }
 
     public static function put(Room $room, $roomState){
+        $updateDb = $roomState->shouldUpdateDb;
+        $roomState->shouldUpdateDb = false;
         Cache::forever('room_' . $room->id, $roomState);
+        if ($updateDb){
+            $room->current_track_id = $roomState->currentTrack;
+            $room->save();
+        }
     }
 
     public function __construct($roomId)
@@ -56,6 +67,8 @@ class RoomState
             $meta = new UserMeta();
             $meta->seen();
             $this->userMeta[$userName] = $meta;
+        }else{
+            abort(403);
         }
     }
 
@@ -82,49 +95,66 @@ class RoomState
         return $this->currentTrack == $trackId || in_array($trackId, $this->queue);
     }
 
-    public function addTrack($trackId, Request $request){
+    public function addTrack($trackId, $duration, $ownerName){
         $track = Track::find($trackId);
         if (!is_null($track)){
             $meta = new TrackMeta();
-            $meta->duration = $track->duration;
-            if (Auth::check()){
-                $meta->owner = $request->user()->name;
+            $meta->owner = $ownerName;
+            $meta->duration = $duration;
+            $meta->key = uniqid($trackId . '.', true);
+            array_push($this->queue, $trackId);
+            array_push($this->queueMeta, $meta);
+            if (is_null($this->currentTrack)){
+                $this->advanceQueue();
             }
-            if ( is_null($this->currentTrack) ){
-                $this->currentTrack = $trackId;
-            } else if (!$this->hasTrack($trackId)) {
-                array_push($this->queue, $trackId);
-            }else{
-                return false;
-            }
-            $this->trackMeta[$trackId] = $meta;
             return true;
         }else{
             return false;
         }
     }
 
-    public function removeTrack($trackId){
-        $changed = false;
-        foreach($this->queue as $index => $id){
-            if ($id === $trackId) {
+    public function removeTrack($key){
+        $queueChanged = false;
+        foreach($this->queueMeta as $index => $meta){
+            if($meta->key == $key){
                 unset($this->queue[$index]);
-                unset($this->trackMeta[$id]);
-                $changed = true;
-                break;
+                unset($this->queueMeta[$index]);
+                $queueChanged = true;
             }
         }
-        if($changed) {
+        if ($queueChanged){
             $this->queue = array_values($this->queue);
+            $this->queueMeta = array_values($this->queueMeta);
             return true;
         }
         return false;
     }
 
-    public function advanceQueue(){
-        if (!in_array($this->currentTrack, $this->queue)){
-            unset($this->trackMeta[$this->currentTrack]);
+    public function updateState(){
+        $now = microtime(true);
+        while($this->currentTrack && $now > $this->currentTrackEnd){
+            $this->advanceQueue();
         }
+        if ($this->currentTrack){
+            $this->seek = $now - $this->currentTrackStart;
+        }else{
+            $this->seek = 0;
+        }
+    }
+
+    public function advanceQueue(){
         $this->currentTrack = array_shift($this->queue);
+        $this->currentTrackMeta = array_shift($this->queueMeta);
+        if ($this->currentTrack){
+            $duration = $this->currentTrackMeta->duration;
+            $this->currentTrackStart = microtime(true);
+            $this->currentTrackEnd = $this->currentTrackStart + $duration;
+            $this->seek = 0;
+        }else{
+            $this->currentTrackStart = 0;
+            $this->currentTrackEnd = 0;
+            $this->seek = 0;
+        }
+        $this->shouldUpdateDb = true;
     }
 }

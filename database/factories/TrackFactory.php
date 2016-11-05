@@ -3,7 +3,8 @@
 $factory->define(App\Track::class, function (Faker\Generator $faker) {
     return [
         'type' => 'file',
-        'url' => '404',
+        'uri' => str_random(10),
+        'link' => '/audio/404.mp3',
         'title' => str_replace('.', '', $faker->text(24)),
         'artist' => $faker->firstName . ' ' . $faker->lastName,
         'album' => str_replace('.', '', $faker->text(24)),

@@ -1,7 +1,7 @@
-var React = require('react');
-var User = require('./UserItem');
+import React from 'react';
+import User from './UserItem';
 
-module.exports = function UserList (props) {
+function UserList (props) {
     return (
         <ul className="list-group">
             {
@@ -14,3 +14,5 @@ module.exports = function UserList (props) {
         </ul>
     );
 };
+
+export default UserList;

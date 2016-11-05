@@ -35,4 +35,12 @@ return [
         'secret' => env('STRIPE_SECRET'),
     ],
 
+    'youtube' => [
+        'key' => env('YOUTUBE_KEY')
+    ],
+
+    'soundcloud' => [
+        'client_id' => env('SOUNDCLOUD_CLIENT_ID')
+    ],
+
 ];

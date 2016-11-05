@@ -1,9 +1,10 @@
-var React = require('react');
-var UserList = require('./UserList');
-var AddTrackButton = require('./AddTrackButton');
-var Queue = require('./Queue');
+import React from 'react';
+import UserList from './UserList';
+import AddTrackButton from './AddTrackButton';
+import Queue from './Queue';
+import Player from './Player';
 
-module.exports = class Room extends React.Component {
+class Room extends React.Component {
 
     syncInterval = null;
     syncFails = 0;
@@ -19,17 +20,15 @@ module.exports = class Room extends React.Component {
             users: [],
             queue: [],
             currentTrack: null,
+            seek: 0,
         };
     }
 
     handleBeforeUnload = () => {
         $.ajax({
-            url: `/room/${this.props.room.name}/leave`,
+            url: `/room/${app.currentRoom.name}/leave`,
             method: 'post',
             async: false,
-            data: {
-                _token: app.csrf_token
-            }
         });
     }
 
@@ -49,17 +48,22 @@ module.exports = class Room extends React.Component {
     }
 
     shouldComponentUpdate(nextProps, nextState){
-        if (
-            this.state.currentTrack !== nextState.currentTrack ||
+        if ((this.state.currentTrack ? !nextState.currentTrack : nextState.currentTrack) ||
+            (this.state.currentTrack && nextState.currentTrack &&
+                this.state.currentTrack.key !== nextState.currentTrack.key) ||
             this.state.loading !== nextState.loading ||
             this.state.queue.length !== nextState.queue.length ||
-            this.state.users.length !== nextState.users.length
+            this.state.users.length !== nextState.users.length ||
+            this.state.seek !== nextState.seek
         ){
             return true;
         }
 
         for (let i = 0; i < this.state.queue.length; i++){
-            if (this.state.queue[i] !== nextState.queue[i]){
+            if ((this.state.queue[i] ? !nextState.queue[i] : nextState.queue[i]) ||
+                this.state.queue[i] && nextState.queue[i] &&
+                    this.state.queue[i].key !== nextState.queue[i].key)
+            {
                 return true;
             }
         }
@@ -74,10 +78,35 @@ module.exports = class Room extends React.Component {
     }
 
     updateState (){
+        var currentTrack = null;
+        if (this.receivedState.currentTrack &&
+            this.trackData[this.receivedState.currentTrack] &&
+            this.userData[this.receivedState.currentTrackMeta.owner])
+        {
+            currentTrack = _.assign(
+                {},
+                this.trackData[this.receivedState.currentTrack],
+                { owner: this.userData[this.receivedState.currentTrackMeta.owner] }
+            );
+        }
         this.setState({
-            users: this.receivedState.users.map((username) => (this.userData[username] || username)),
-            queue: this.receivedState.queue.map((trackid) => this.trackData[track.id]),
-            currentTrack: this.trackData[this.receivedState.currentTrack]
+            users: this.receivedState.users.map((userName) => (this.userData[userName] || userName)),
+            queue: this.receivedState.queue.map((trackId, index) => {
+                var track = null;
+                if (this.trackData[trackId]){
+                    track = _.assign(
+                        {},
+                        this.trackData[trackId],
+                        {
+                            owner: this.userData[this.receivedState.queueMeta[index].owner],
+                            key: this.receivedState.queueMeta[index].key
+                        }
+                    );
+                }
+                return track;
+            }),
+            currentTrack: currentTrack,
+            seek: this.receivedState.seek,
         });
     }
 
@@ -119,7 +148,7 @@ module.exports = class Room extends React.Component {
                 }
                 if (data.tracks) {
                     for (let track of data.tracks) {
-                        this.trackData[track.id] = _.assign(track, {owner: this.userData[username]});
+                        this.trackData[track.id] = track;
                     }
                 }
 
@@ -130,7 +159,7 @@ module.exports = class Room extends React.Component {
 
     sync = () => {
         $.ajax({
-            url: `/room/${this.props.room.name}/syncme`,
+            url: `/room/${app.currentRoom.name}/syncme`,
             method: 'get',
             dataType: 'json'
         })
@@ -142,21 +171,19 @@ module.exports = class Room extends React.Component {
                 this.syncFails++;
                 if (this.syncFails == 10){
                     this.props.unmount();
-                    bootbox.alert('Connection lost', function(){
-                        location = "/rooms";
-                    });
+                    alertify.alert('Error', 'Connection lost',
+                        function(){
+                            location = "/rooms";
+                        });
                 }
             });
     }
 
     componentDidMount(){
         $.ajax({
-            url: `/room/${this.props.room.name}/join`,
+            url: `/room/${app.currentRoom.name}/join`,
             method: 'post',
             dataType: 'json',
-            data: {
-                _token: app.csrf_token
-            }
         })
             .done((data) => {
                 if (this.state.loading){
@@ -175,9 +202,29 @@ module.exports = class Room extends React.Component {
         clearInterval(this.syncInterval);
     }
 
+    handleRequestRemove = (track) => {
+        $.ajax({
+            url: `/room/${app.currentRoom.name}/removetrack`,
+            method: 'post',
+            data: {
+                key: track.key
+            }
+        })
+            .done(() => {
+                this.setState({
+                    queue: this.state.queue.filter((v) => v.key !== track.key )
+                });
+            })
+            .fail(() => {
+                alertify.error('Removing track failed');
+            });
+    };
+
     render() {
-        var room = this.props.room;
-        if (this.state.loading){
+        const {
+            loading, queue, users, currentTrack, seek
+        } = this.state;
+        if (loading){
             return (
                 <div className="text-center">
                     <h3><i className="spinner spinner" /> Joining Room...</h3>
@@ -190,6 +237,9 @@ module.exports = class Room extends React.Component {
                         <div className="col-md-12">
                             <div className="panel panel-default player-panel">
                                 <div className="panel-body">
+                                    {
+                                        <Player track={currentTrack} seek={seek} />
+                                    }
                                 </div>
                             </div>
                         </div>
@@ -201,7 +251,7 @@ module.exports = class Room extends React.Component {
                                     <AddTrackButton className="pull-right" buttonClass="btn-xs" />
                                     <div className="panel-title">Queue</div>
                                 </div>
-                                <Queue tracks={this.state.queue}/>
+                                <Queue tracks={queue} onRequestRemove={this.handleRequestRemove}/>
                             </div>
                         </div>
                         <div className="col-md-4">
@@ -218,7 +268,7 @@ module.exports = class Room extends React.Component {
                                 <div className="panel-heading">
                                     <div className="panel-title">Users</div>
                                 </div>
-                                <UserList users={this.state.users}/>
+                                <UserList users={users}/>
                             </div>
                         </div>
                     </div>
@@ -226,4 +276,6 @@ module.exports = class Room extends React.Component {
             );
         }
     }
-};
+}
+
+export default Room;

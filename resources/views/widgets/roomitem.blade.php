@@ -8,7 +8,12 @@
         </a>
         <br>
         @if(!is_null($room->currentTrack))
-            {{ $room->currentTrack->title }} - {{ $room->currentTrack->artist }}
+            Now Playing:
+            @if($room->currentTrack->type == 'file' || $room->currentTrack->type == 'soundcloud')
+                {{ $room->currentTrack->title ?: 'Unknown Title' . ' - ' . $room->currentTrack->artist ?: 'Unknown Artist' }}
+            @elseif($room->currentTrack->type == 'youtube')
+                {{ $room->currentTrack->title ?: 'Unknown Title' }}
+            @endif
         @else
             No track currently playing.
         @endif

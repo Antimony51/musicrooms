@@ -1,16 +1,18 @@
-var React = require('react');
-var Track = require('./TrackItem');
+import React from 'react';
+import TrackItem from './TrackItem';
 
-module.exports = function Queue(props) {
+function Queue(props) {
     return (
         <ul className="list-group">
             {
-                props.tracks.map((track) => track && (
-                    <li className="list-group-item" key={track.id}>
-                        <Track track={track} />
+                props.tracks.map((track, index) => track && (
+                    <li className="list-group-item" style={{padding: 0}} key={track.key}>
+                        <TrackItem track={track} onRequestRemove={() => props.onRequestRemove(track)} />
                     </li>
                 ))
             }
         </ul>
     );
 }
+
+export default Queue;

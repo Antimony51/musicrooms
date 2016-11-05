@@ -22,6 +22,8 @@ Route::group(['prefix' => 'room/{room}'], function(){
     Route::get('syncme', 'RoomController@syncMe')->name('syncMe');
     Route::post('join', 'RoomController@join')->name('joinRoom');
     Route::post('leave', 'RoomController@leave')->name('leaveRoom');
+    Route::post('addtrack', 'RoomController@addTrack');
+    Route::post('removetrack', 'RoomController@removeTrack');
     Route::get('data', function(App\Room $room) {return $room;});
     Route::get('getdata', 'RoomController@getData');
 });

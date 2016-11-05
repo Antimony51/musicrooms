@@ -96,10 +96,115 @@ $user-icon-large-size: 200px;
 }
 
 .track-name {
-
+  padding: 10px 5px 10px 10px;
 }
 
 .track-duration {
-  float:right;
   opacity: 0.6;
+  padding: 10px 15px 10px 5px;
+}
+
+.track-remove + .track-duration {
+  padding-right: 5px;
+}
+
+.track-reorder {
+  cursor: move;
+  cursor: grab;
+  cursor: -moz-grab;
+  cursor: -webkit-grab;
+
+  padding: 10px 4px;
+  border-right: 1px solid $list-group-border;
+
+  i {
+    opacity: 0.6;
+  }
+}
+
+.track-remove {
+  opacity: 0.6;
+  padding: 10px 15px 10px 5px;
+  cursor: pointer;
+}
+
+.track-remove.wait {
+  opacity: 1;
+  cursor: auto;
+}
+
+.track-remove:hover {
+  opacity: 1;
+}
+
+.track-reorder:active {
+  cursor: grabbing;
+  cursor: -moz-grabbing;
+  cursor: -webkit-grabbing;
+}
+
+div.dyn-block-row {
+  white-space: nowrap;
+
+  div.rigid-right {
+    float: right;
+  }
+
+  div.rigid-left {
+    float: left;
+  }
+
+  div.fluid {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+}
+
+$seek-bar-color: black;
+$seek-bar-bg-color: $panel-inner-border;
+
+.seek-bar {
+  padding: 4px;
+  border: 1px solid $panel-inner-border;
+  border-radius: 7px;
+  cursor: pointer;
+
+  .bg-bar {
+    border: 2px solid $seek-bar-bg-color;
+    border-radius: 2px;
+  }
+
+  .bg-bar + .fill-bar {
+    margin-top: -4px;
+  }
+
+  .fill-bar {
+    border: 2px solid $seek-bar-color;
+    border-radius: 2px;
+    position: relative;
+  }
+
+  .fill-bar:after {
+    content: '';
+    background-color: $seek-bar-color;
+    width: 0px;
+    height: 0px;
+    position: absolute;
+    right: 0px;
+    top: 0px;
+    border-radius: 0px;
+    transition: all 0.5s;
+  }
+}
+
+.seek-bar:hover {
+  .fill-bar:after {
+      width: 16px;
+      height: 16px;
+      right: -8px;
+      top: -8px;
+      border-radius: 8px;
+      transition: all 0.1s;
+  }
 }

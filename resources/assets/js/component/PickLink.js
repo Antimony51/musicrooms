@@ -1,7 +1,7 @@
-var React = require('react');
-var Track = require('../class/Track');
+import React from 'react';
+import Track from '../class/Track';
 
-module.exports = class PickLink extends React.Component {
+class PickLink extends React.Component {
 
     timeout = null;
 
@@ -25,9 +25,6 @@ module.exports = class PickLink extends React.Component {
                     type: 'youtube',
                     uri: query.v
                 });
-                this.setState({
-                    track: track
-                });
             }
         }else if (uri.domain() == 'youtu.be'){
             if (uri.segment().length == 1){
@@ -35,18 +32,12 @@ module.exports = class PickLink extends React.Component {
                     type: 'youtube',
                     uri: uri.filename()
                 });
-                this.setState({
-                    track: track
-                });
             }
         }else if (uri.domain() == 'soundcloud.com'){
             if (uri.segment().length == 2){
                 track = new Track({
                     type: 'soundcloud',
                     uri: uri.path()
-                });
-                this.setState({
-                    track: track
                 });
             }
         }
@@ -76,7 +67,7 @@ module.exports = class PickLink extends React.Component {
                                 if (snippet.liveBroadcastContent != 'none'){
                                     this.setState({
                                         track: null,
-                                        error: 'Live streams can\'t be added'
+                                        error: "Live streams can't be added"
                                     });
                                 }else if (!status.embeddable){
                                     this.setState({
@@ -86,6 +77,7 @@ module.exports = class PickLink extends React.Component {
                                 }else{
                                     track.title = snippet.title;
                                     track.duration = moment.duration(contentDetails.duration).asSeconds();
+                                    track.link = 'http://youtube.com/watch?v=' + track.uri;
 
                                     this.setState({
                                         track: track
@@ -115,28 +107,33 @@ module.exports = class PickLink extends React.Component {
                         }
                     })
                         .done((data) => {
-                            if (data.kind && data.kind == 'track'){
-                                if (!data.streamable || data.embeddable_by != 'all'){
-                                    this.setState({
-                                        track: null,
-                                        error: 'Embedding is disabled for this track'
-                                    });
-                                }else{
-                                    track.title = data.title;
-                                    track.artist = data.user.username;
-                                    track.duration = data.duration / 1000;
+                            if (!data.streamable || data.embeddable_by != 'all'){
+                                this.setState({
+                                    track: null,
+                                    error: 'Embedding is disabled for this track'
+                                });
+                            }else{
+                                track.uri = data.id;
+                                track.title = data.title;
+                                track.artist = data.user.username;
+                                track.duration = data.duration / 1000;
+                                track.link = data.permalink_url;
 
-                                    this.setState({
-                                        track: track
-                                    });
-                                }
+                                this.setState({
+                                    track: track
+                                });
                             }
                         })
                         .fail((jqXHR) => {
-                            if (jqXHR.statusCode == 404){
+                            if (jqXHR.status == 404){
                                 this.setState({
                                     track: null,
                                     error: 'Track not found'
+                                });
+                            }else if (jqXHR.status == 403){
+                                this.setState({
+                                    track: null,
+                                    error: 'Embedding is disabled for this track'
                                 });
                             }else{
                                 this.setState({
@@ -189,13 +186,15 @@ module.exports = class PickLink extends React.Component {
     handleSubmit = (ev) => {
         ev.preventDefault();
 
-        if (this.state.track && this.state.track.type && this.state.track.uri){
-            this.props.onSelect(this.state.track);
-        }else{
-            if (!this.state.error){
-                this.setState({
-                    error: 'Not a valid YouTube or Soundcloud URL'
-                });
+        if (!this.state.wait){
+            if (this.state.track && this.state.track.type && this.state.track.uri){
+                this.props.onSelect(this.state.track);
+            }else{
+                if (!this.state.error){
+                    this.setState({
+                        error: 'Not a valid YouTube or Soundcloud URL'
+                    });
+                }
             }
         }
     };
@@ -235,3 +234,5 @@ module.exports = class PickLink extends React.Component {
         );
     }
 }
+
+export default PickLink;

@@ -1,6 +1,6 @@
-var React = require('react');
+import React from 'react';
 
-module.exports = class ManageFriend extends React.Component {
+class ManageFriend extends React.Component {
     constructor(props){
         super(props);
 
@@ -14,7 +14,6 @@ module.exports = class ManageFriend extends React.Component {
         $.ajax({
             url: '/user/' + this.state.user.name + '/' + action,
             method: 'POST',
-            data: {'_token': app.csrf_token}
         })
             .done((data) => {
                 this.setState({
@@ -22,7 +21,7 @@ module.exports = class ManageFriend extends React.Component {
                 });
             })
             .fail(() => {
-                alertify.error("Removing friend failed.")
+                alertify.error('Action failed.')
             })
             .always(() => {
                 this.setState({
@@ -33,17 +32,17 @@ module.exports = class ManageFriend extends React.Component {
 
     update (action){
         if (action === 'removefriend'){
-            bootbox.confirm('Are you sure you want to unfriend ' + this.state.user.displayName + '?', (value) => {
-                if (value){
+            alertify.confirm('Remove Friend',
+                'Are you sure you want to unfriend ' + this.state.user.displayName + '?',
+                (value) => {
                     this.realUpdate(action);
-                }
-            });
+                });
         }else if (action === 'cancelrequest'){
-            bootbox.confirm('Are you sure you want to cancel the friend request to ' + this.state.user.displayName + '?', (value) => {
-                if (value){
+            alertify.confirm('Cancel Friend Request',
+                'Are you sure you want to cancel the friend request to ' + this.state.user.displayName + '?',
+                (value) => {
                     this.realUpdate(action);
-                }
-            });
+                });
         }else{
             this.realUpdate(action);
         }
@@ -96,4 +95,6 @@ module.exports = class ManageFriend extends React.Component {
             return null;
         }
     }
-};
+}
+
+export default ManageFriend;

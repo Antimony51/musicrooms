@@ -10,6 +10,8 @@ use App\User;
 use App\Track;
 use App\RoomState;
 use Auth;
+use DateInterval;
+use DateTimeImmutable;
 
 class RoomController extends Controller
 {
@@ -52,6 +54,7 @@ class RoomController extends Controller
 
     public function syncMe (Room $room, Request $request){
         $roomState = RoomState::get($room);
+        $roomState->updateState();
         if (Auth::check()){
             $roomState->userSeen($request->user()->name);
             RoomState::put($room, $roomState);
@@ -80,9 +83,113 @@ class RoomController extends Controller
         if (Auth::check()) {
             $user = $request->user();
             $roomState = RoomState::get($room);
-            if ($roomState->hasUser($user)){
+            if ($roomState->hasUser($user->name)){
+                $type = $request->input('type');
+                $uri = $request->input('uri');
+                $newTrack = new Track();
+                if ($type == 'youtube'){
+                    $ch = curl_init(
+                        'https://www.googleapis.com/youtube/v3/videos' .
+                        '?part=status,snippet,contentDetails' .
+                        '&id=' . $uri .
+                        '&key=' . config('services.youtube.key')
+                    );
+                    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                    $data = curl_exec($ch);
+                    if ($data === false){
+                        abort(502);
+                    }
+                    curl_close($ch);
+                    $data = json_decode($data);
+                    if (sizeof($data->items) == 0){
+                        abort(404, 'Video does not exist');
+                    }
+                    $status = $data->items[0]->status;
+                    $snippet = $data->items[0]->snippet;
+                    $contentDetails = $data->items[0]->contentDetails;
+                    if ($snippet->liveBroadcastContent != 'none'){
+                        abort(403);
+                    }else if (!$status->embeddable){
+                        abort(403);
+                    }else{
+                        $newTrack->type = $type;
+                        $newTrack->uri = $uri;
+                        $newTrack->link = 'http://youtube.com/watch?v=' . $uri;
+                        $newTrack->title = $snippet->title;
 
+                        $dateInterval = new DateInterval($contentDetails->duration);
+                        $reference = new DateTimeImmutable;
+                        $endTime = $reference->add($dateInterval);
+
+                        $newTrack->duration = $endTime->getTimestamp() - $reference->getTimestamp();
+                    }
+                }else if ($type == 'soundcloud'){
+                    $ch = curl_init(
+                        'http://api.soundcloud.com/tracks/' . $uri .
+                        '?client_id=' . config('services.soundcloud.client_id')
+                    );
+                    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                    $data = curl_exec($ch);
+                    if ($data === false){
+                        abort(502);
+                    }
+                    curl_close($ch);
+                    $data = json_decode($data);
+                    if (!$data->id){
+                        dd($data);
+                    }
+                    if (!$data->streamable || $data->embeddable_by != 'all'){
+                        abort(403);
+                    }else{
+                        $newTrack->type = $type;
+                        $newTrack->uri = $uri;
+                        $newTrack->link = $data->permalink_url;
+                        $newTrack->title = $data->title;
+                        $newTrack->artist = $data->user->username;
+                        $newTrack->duration = $data->duration / 1000;
+                    }
+                }else if ($type == 'file'){
+                    // not yet implemented
+                    abort(501);
+                }
+
+                $track = Track::whereType($type)
+                    ->whereUri($uri)->first();
+
+                if (!is_null($track)){
+                    // keep metadata fresh
+                    $track->title = $newTrack->title;
+                    $track->artist = $newTrack->artist;
+                    $track->album = $newTrack->album;
+                }else{
+                    $track = $newTrack;
+                }
+
+                $track->save();
+
+                $roomState->addTrack($track->id, $track->duration, $user->name);
+                RoomState::put($room, $roomState);
+            }else{
+                abort(403);
             }
+        }else{
+            abort(403);
+        }
+    }
+
+    public function removeTrack(Room $room, Request $request){
+        if (Auth::check()) {
+            $user = $request->user();
+            $roomState = RoomState::get($room);
+
+            $key = $request->input('key');
+
+            if (!$roomState->removeTrack($key)){
+                abort(403);
+            }
+            RoomState::put($room, $roomState);
+        }else{
+            abort(403);
         }
     }
 
