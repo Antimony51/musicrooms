@@ -12,6 +12,7 @@ use App\RoomState;
 use Auth;
 use DateInterval;
 use DateTimeImmutable;
+use Log;
 
 class RoomController extends Controller
 {
@@ -57,25 +58,28 @@ class RoomController extends Controller
         $roomState->updateState();
         if (Auth::check()){
             $roomState->userSeen($request->user()->name);
-            RoomState::put($room, $roomState);
+        }else{
+            Log::debug('Not logged in');
         }
+        $roomState->save();
         return json_encode($roomState);
     }
 
     public function join (Room $room, Request $request){
+        $roomState = RoomState::get($room);
+        $roomState->updateState();
         if (Auth::check()) {
-            $roomState = RoomState::get($room);
             $roomState->userJoin($request->user()->name);
-            RoomState::put($room, $roomState);
+            $roomState->save();
         }
-        return json_encode(RoomState::get($room));
+        return json_encode($roomState);
     }
 
     public function leave (Room $room, Request $request){
         if (Auth::check()) {
             $roomState = RoomState::get($room);
             $roomState->userLeave($request->user()->name);
-            RoomState::put($room, $roomState);
+            $roomState->save();
         }
     }
 
@@ -148,9 +152,15 @@ class RoomController extends Controller
                         $newTrack->artist = $data->user->username;
                         $newTrack->duration = $data->duration / 1000;
                     }
-                }else if ($type == 'file'){
-                    // not yet implemented
-                    abort(501);
+                }else if ($type == 'file' && $request->hasFile('audiofile')){
+                    $file = $request->file('audiofile');
+                    if (!$file->isValid()){
+                        abort(400);
+                    }
+                    $file->store('uploads/audio');
+                    abort(202);
+                }else{
+                    abort(400);
                 }
 
                 $track = Track::whereType($type)
@@ -168,7 +178,7 @@ class RoomController extends Controller
                 $track->save();
 
                 $roomState->addTrack($track->id, $track->duration, $user->name);
-                RoomState::put($room, $roomState);
+                $roomState->save();
             }else{
                 abort(403);
             }
@@ -187,7 +197,7 @@ class RoomController extends Controller
             if (!$roomState->removeTrack($key)){
                 abort(403);
             }
-            RoomState::put($room, $roomState);
+            $roomState->save();
         }else{
             abort(403);
         }

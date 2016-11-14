@@ -6,6 +6,8 @@ use App\Http\Requests\Request;
 use Carbon\Carbon;
 use Auth;
 use Cache;
+use Log;
+use App\Room;
 
 class RoomState {
 
@@ -33,16 +35,19 @@ class RoomState {
                 unset($state->users[$index]);
                 unset($state->userMeta[$userName]);
                 $usersChanged = true;
+                Log::debug("$userName expired");
             }
         }
         if ($usersChanged){
             $state->users = array_values($state->users);
+            $state->save();
         }
 
         return $state;
     }
 
     public static function put(Room $room, $roomState){
+        Log::debug("RoomState saved");
         $updateDb = $roomState->shouldUpdateDb;
         $roomState->shouldUpdateDb = false;
         Cache::forever('room_' . $room->id, $roomState);
@@ -57,6 +62,11 @@ class RoomState {
         $this->id = $roomId;
     }
 
+    public function save(){
+        $room = Room::findOrFail($this->id);
+        RoomState::put($room, $this);
+    }
+
     public function hasUser($userName){
         return in_array($userName, $this->users);
     }
@@ -67,6 +77,7 @@ class RoomState {
             $meta = new UserMeta();
             $meta->seen();
             $this->userMeta[$userName] = $meta;
+            Log::debug("$userName joined");
         }else{
             abort(403);
         }
@@ -84,11 +95,14 @@ class RoomState {
         }
         if($changed) {
             $this->users = array_values($this->users);
+            Log::debug("$userName left");
         }
     }
 
     public function userSeen($userName){
-        $this->userMeta[$userName]->seen();
+        if ($this->hasUser($userName)){
+            $this->userMeta[$userName]->seen();
+        }
     }
 
     public function hasTrack($trackId){

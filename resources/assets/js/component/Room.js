@@ -194,6 +194,13 @@ class Room extends React.Component {
                 this.processStateChange(data);
                 window.addEventListener('beforeunload', this.handleBeforeUnload);
                 this.syncInterval = setInterval(this.sync, 1000);
+            })
+            .fail(() => {
+                this.props.unmount();
+                alertify.alert('Error', 'Failed to join',
+                    function(){
+                        location = "/rooms";
+                    });
             });
     }
 
