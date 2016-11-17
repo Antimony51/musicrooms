@@ -17,6 +17,8 @@ Route::get('admin/users', 'UserController@showUserList');
 Route::get('admin/rooms', 'RoomController@showAllRooms');
 
 Route::get('rooms', 'RoomController@showPublicRooms')->name('publicRooms');
+Route::get('rooms/create', ['middleware' => 'auth', 'uses' => 'RoomController@showCreateRoom']);
+Route::post('rooms/create', ['middleware' => 'auth', 'uses' => 'RoomController@createRoom'])->name('createRoom');
 Route::group(['prefix' => 'room/{room}'], function(){
     Route::get('', 'RoomController@show')->name('room');
     Route::get('syncme', 'RoomController@syncMe')->name('syncMe');

@@ -13,6 +13,7 @@ use Auth;
 use DateInterval;
 use DateTimeImmutable;
 use Log;
+use Validator;
 
 class RoomController extends Controller
 {
@@ -21,9 +22,66 @@ class RoomController extends Controller
         return view('room.main', compact('room'));
     }
 
+    public function showCreateRoom(Request $request){
+        return view('room.create');
+    }
+
+    public function createRoom(Request $request){
+
+        $data = collect($request->all())->map(function($item, $key){
+            if ($key == 'title' ||
+                $key == 'description')
+            {
+                return trim($item);
+            }else{
+                return $item;
+            }
+        })->toArray();
+        $validator = $this->validator($data);
+
+        if ($validator->fails()) {
+            $this->throwValidationException(
+                $request, $validator
+            );
+        }
+
+        $room = new Room();
+        if ($data['visibility'] == 'public'){
+            $room->name = $data['name'];
+        }else{
+            $room->name = str_random(16);
+        }
+        $room->visibility = $data['visibility'];
+        $room->title = $data['title'];
+        $room->description = $data['description'];
+        $room->owner()->associate($request->user());
+        $room->save();
+
+        return redirect(route('room', ['room' => $room]));
+    }
+
+    protected function validator(array $data)
+    {
+        $validator = Validator::make($data, [
+            'visibility' => 'required|in:public,private',
+            'name' => 'required_if:visibility,public|username_chars|max:24|unique:rooms,name',
+            'title' => 'required|max:24',
+            'description' => 'max:1000',
+        ]);
+        $validator->setAttributeNames([
+            'visibility' => '',
+            'name' => 'URL',
+            'title' => 'title',
+            'description' => 'description'
+        ]);
+        return $validator;
+    }
+
     public function showPublicRooms()
     {
-        $rooms = Room::whereVisibility('public')->paginate(20);
+        $rooms = Room::whereVisibility('public')
+            ->orderBy('user_count', 'desc')
+            ->paginate(20);
         $title = "Public Rooms";
         $emptyMessage = "There are no public rooms.";
         return view('room.list', compact('rooms', 'title', 'emptyMessage'));
@@ -31,7 +89,9 @@ class RoomController extends Controller
 
     public function showSavedRooms(Request $request)
     {
-        $rooms = $request->user()->savedRooms()->paginate(20);
+        $rooms = $request->user()->savedRooms()
+            ->orderBy('user_count', 'desc')
+            ->paginate(20);
         $title = "Saved Rooms";
         $emptyMessage = "You have no saved rooms.";
         return view('room.list', compact('rooms', 'title', 'emptyMessage'));
@@ -39,7 +99,7 @@ class RoomController extends Controller
 
     public function showAllRooms()
     {
-        $rooms = Room::paginate(20);
+        $rooms = Room::orderBy('user_count', 'desc')->paginate(20);
         $title = "All Rooms";
         $emptyMessage = "There are no rooms.";
         return view('room.list', compact('rooms', 'title', 'emptyMessage'));
@@ -47,7 +107,9 @@ class RoomController extends Controller
 
     public function showMyRooms(Request $request)
     {
-        $rooms = $request->user()->rooms()->paginate(20);
+        $rooms = $request->user()->rooms()
+            ->orderBy('user_count', 'desc')
+            ->paginate(20);
         $title = "My Rooms";
         $emptyMessage = "You don't own any rooms.";
         return view('room.list', compact('rooms', 'title', 'emptyMessage'));
@@ -55,7 +117,6 @@ class RoomController extends Controller
 
     public function syncMe (Room $room, Request $request){
         $roomState = RoomState::get($room);
-        $roomState->updateState();
         if (Auth::check()){
             $roomState->userSeen($request->user()->name);
         }else{
@@ -67,7 +128,6 @@ class RoomController extends Controller
 
     public function join (Room $room, Request $request){
         $roomState = RoomState::get($room);
-        $roomState->updateState();
         if (Auth::check()) {
             $roomState->userJoin($request->user()->name);
             $roomState->save();

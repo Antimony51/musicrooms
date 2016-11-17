@@ -12,7 +12,7 @@
             @if($i % 3 == 0)
                 <div class="row">
             @endif
-                <div class="col-md-4">
+                <div class="col-sm-4">
                     @include('widgets.useritem', ['user' => $pendingFriend])
                 </div>
             @if($i % 3 == 2 || $i == $count-1)
@@ -24,7 +24,7 @@
             @if($i % 3 == 0)
                 <div class="row">
             @endif
-                <div class="col-md-4">
+                <div class="col-sm-4">
                     @include('widgets.useritem', ['user' => $friend])
                 </div>
             @if($i % 3 == 2 || $i == $count-1)

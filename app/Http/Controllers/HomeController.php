@@ -26,12 +26,18 @@ class HomeController extends Controller
      */
     public function index(Request $request)
     {
-        $publicRooms = Room::whereVisibility('public')->limit(3)->get();
+        $publicRooms = Room::whereVisibility('public')
+            ->orderBy('user_count', 'desc')
+            ->limit(3)->get();
         $myRooms = null;
         $savedRooms = null;
         if (Auth::check()){
-            $myRooms = $request->user()->rooms()->limit(3)->get();
-            $savedRooms = $request->user()->savedRooms()->limit(3)->get();
+            $myRooms = $request->user()->rooms()
+                ->orderBy('user_count', 'desc')
+                ->limit(3)->get();
+            $savedRooms = $request->user()->savedRooms()
+                ->orderBy('user_count', 'desc')
+                ->limit(3)->get();
         }
         return view('home', compact('publicRooms', 'myRooms', 'savedRooms'));
     }

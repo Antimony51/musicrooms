@@ -110,14 +110,11 @@ class UserController extends Controller
             })->toArray();
             $validator = $this->validator($data);
 
-
             if ($validator->fails()) {
                 $this->throwValidationException(
                     $request, $validator
                 );
             }
-
-
 
             $profile = $user->profile;
             $profile->bio = $data['bio'];
@@ -134,7 +131,7 @@ class UserController extends Controller
     {
         $validator = Validator::make($data, [
             'cosmetic-name' => 'max:24',
-            'bio' => ''
+            'bio' => 'max:1000'
         ]);
         $validator->setAttributeNames([
             'cosmetic-name' => 'cosmetic name',

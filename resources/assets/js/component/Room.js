@@ -3,6 +3,7 @@ import UserList from './UserList';
 import AddTrackButton from './AddTrackButton';
 import Queue from './Queue';
 import Player from './Player';
+import SaveRoom from './SaveRoom';
 
 class Room extends React.Component {
 
@@ -234,25 +235,33 @@ class Room extends React.Component {
         if (loading){
             return (
                 <div className="text-center">
-                    <h3><i className="spinner spinner" /> Joining Room...</h3>
+                    <h3><i className="spinner" /> Joining Room...</h3>
                 </div>
             )
         }else{
             return (
                 <div className="container">
                     <div className="row">
-                        <div className="col-md-12">
-                            <div className="panel panel-default player-panel">
-                                <div className="panel-body">
-                                    {
-                                        <Player track={currentTrack} seek={seek} />
-                                    }
-                                </div>
-                            </div>
+                        <div className="col-sm-10 col-sm-offset-1 text-center">
+                            <h2>{app.currentRoom.title}</h2>
+                            <h5 className="text-muted">
+                                Owner: <a href={'/user/' + app.currentRoom.owner.name}>
+                                    {app.currentRoom.owner.displayName}
+                                </a>
+                                <SaveRoom room={app.currentRoom} />
+                            </h5>
+                        </div>
+                    </div>
+                    <hr/>
+                    <div className="row">
+                        <div className="col-sm-10 col-sm-offset-1">
+                            {
+                                <Player track={currentTrack} seek={seek} />
+                            }
                         </div>
                     </div>
                     <div className="row">
-                        <div className="col-md-4">
+                        <div className="col-sm-6 col-sm-offset-1">
                             <div className="panel panel-default queue-panel">
                                 <div className="panel-heading">
                                     <AddTrackButton className="pull-right" buttonClass="btn-xs" />
@@ -261,16 +270,7 @@ class Room extends React.Component {
                                 <Queue tracks={queue} onRequestRemove={this.handleRequestRemove}/>
                             </div>
                         </div>
-                        <div className="col-md-4">
-                            <div className="panel panel-default chat-panel">
-                                <div className="panel-heading">
-                                    <div className="panel-title">Chat</div>
-                                </div>
-                                <div className="panel-body">
-                                </div>
-                            </div>
-                        </div>
-                        <div className="col-md-4">
+                        <div className="col-sm-4">
                             <div className="panel panel-default users-panel">
                                 <div className="panel-heading">
                                     <div className="panel-title">Users</div>

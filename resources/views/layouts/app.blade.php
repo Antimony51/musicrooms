@@ -55,6 +55,7 @@
                     <!-- Left Side Of Navbar -->
                     <ul class="nav navbar-nav">
                         <li><a href="{{ url('/home') }}">Home</a></li>
+                        <li><a href="{{ url('/rooms') }}">Rooms</a></li>
                     </ul>
 
                     <!-- Right Side Of Navbar -->
@@ -81,7 +82,7 @@
         </nav>
         <div class="container">
             <div class="row">
-                <div id="content" class="col-md-12 col-md-offset-0">
+                <div id="content" class="col-sm-12 col-sm-offset-0">
                     @yield('content')
                 </div>
             </div>

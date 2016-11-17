@@ -3,19 +3,20 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
+use Auth;
 
 class Room extends Model
 {
     protected $fillable = [
-        'name', 'visibility', 'title', 'description', 'current_track_id'
+        'name', 'visibility', 'title', 'description'
     ];
 
     protected $visible = [
-        'name', 'visibility', 'title', 'description', 'owner', 'current_track_id'
+        'name', 'visibility', 'title', 'description', 'owner', 'user_count', 'isSaved'
     ];
 
     protected $appends = [
-        'owner'
+        'owner', 'isSaved'
     ];
 
     public function getRouteKeyName()
@@ -28,7 +29,36 @@ class Room extends Model
     }
 
     public function currentTrack(){
-        return $this->belongsTo('App\Track', 'current_track_id');
+        $roomState = RoomState::get($this);
+        if (is_null($roomState) || is_null($roomState->currentTrack)){
+            return null;
+        }else{
+            return Track::findOrFail($roomState->currentTrack);
+        }
+    }
+
+    public function userCount(){
+        $roomState = RoomState::get($this);
+        if (is_null($roomState)){
+            return 0;
+        }else{
+            return $roomState->userCount;
+        }
+    }
+
+    public function savedBy(){
+        return $this->belongsToMany('App\User', 'saved_rooms');
+    }
+
+    public function isSaved(){
+        if (Auth::check()){
+            return !is_null($this->savedBy()->whereUserId(Auth::user()->id));
+        }else{
+            return null;
+        }
+    }
+    public function getIsSavedAttribute(){
+        return $this->isSaved();
     }
 
     public function getOwnerAttribute(){

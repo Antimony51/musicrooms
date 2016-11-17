@@ -9,7 +9,8 @@
         "laravel/framework": "5.2.*",
         "laravelcollective/html": "^5.2",
         "doctrine/dbal": "^2.5",
-        "hootlex/laravel-friendships": "^1.0"
+        "hootlex/laravel-friendships": "^1.0",
+        "captbaritone/transcode-to-mp3-stream": "@dev"
     },
     "require-dev": {
         "fzaninotto/faker": "~1.4",

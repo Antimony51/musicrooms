@@ -19,42 +19,30 @@ class RoomState {
     private $currentTrackStart = 0;
     private $currentTrackEnd = 0;
     public $currentTrackMeta = null;
+    public $userCount = 0;
 
     public $queueMeta = [];
     private $userMeta = [];
+
     private $shouldUpdateDb = false;
 
     public static function get(Room $room){
-        $state = Cache::rememberForever('room_' . $room->id, function() use ($room){
+        $roomState = Cache::rememberForever('room_' . $room->id, function() use ($room){
             return new RoomState($room->id);
         });
 
-        $usersChanged = false;
-        foreach($state->users as $index => $userName){
-            if ($state->userMeta[$userName]->expired()){
-                unset($state->users[$index]);
-                unset($state->userMeta[$userName]);
-                $usersChanged = true;
-                Log::debug("$userName expired");
-            }
-        }
-        if ($usersChanged){
-            $state->users = array_values($state->users);
-            $state->save();
-        }
+        $roomState->update();
 
-        return $state;
+        return $roomState;
     }
 
     public static function put(Room $room, $roomState){
-        Log::debug("RoomState saved");
-        $updateDb = $roomState->shouldUpdateDb;
-        $roomState->shouldUpdateDb = false;
-        Cache::forever('room_' . $room->id, $roomState);
-        if ($updateDb){
-            $room->current_track_id = $roomState->currentTrack;
+        if ($roomState->shouldUpdateDb){
+            $roomState->shouldUpdateDb = false;
+            $room->user_count = $roomState->userCount;
             $room->save();
         }
+        Cache::forever('room_' . $room->id, $roomState);
     }
 
     public function __construct($roomId)
@@ -77,7 +65,7 @@ class RoomState {
             $meta = new UserMeta();
             $meta->seen();
             $this->userMeta[$userName] = $meta;
-            Log::debug("$userName joined");
+            $this->updateUserCount();
         }else{
             abort(403);
         }
@@ -95,7 +83,7 @@ class RoomState {
         }
         if($changed) {
             $this->users = array_values($this->users);
-            Log::debug("$userName left");
+            $this->updateUserCount();
         }
     }
 
@@ -115,7 +103,7 @@ class RoomState {
             $meta = new TrackMeta();
             $meta->owner = $ownerName;
             $meta->duration = $duration;
-            $meta->key = uniqid($trackId . '.', true);
+            $meta->key = $trackId . '.' . str_random(10);
             array_push($this->queue, $trackId);
             array_push($this->queueMeta, $meta);
             if (is_null($this->currentTrack)){
@@ -144,7 +132,8 @@ class RoomState {
         return false;
     }
 
-    public function updateState(){
+    public function update(){
+
         $now = microtime(true);
         while($this->currentTrack && $now > $this->currentTrackEnd){
             $this->advanceQueue();
@@ -153,6 +142,29 @@ class RoomState {
             $this->seek = $now - $this->currentTrackStart;
         }else{
             $this->seek = 0;
+        }
+
+        $usersChanged = false;
+        foreach($this->users as $index => $userName){
+            if ($this->userMeta[$userName]->expired()){
+                unset($this->users[$index]);
+                unset($this->userMeta[$userName]);
+                $usersChanged = true;
+            }
+        }
+        if ($usersChanged){
+            $this->users = array_values($this->users);
+            $this->updateUserCount();
+        }
+
+        $this->save();
+    }
+
+    private function updateUserCount(){
+        $newUserCount = sizeof($this->users);
+        if ($this->userCount != $newUserCount){
+            $this->userCount = $newUserCount;
+            $this->shouldUpdateDb = true;
         }
     }
 
@@ -169,6 +181,5 @@ class RoomState {
             $this->currentTrackEnd = 0;
             $this->seek = 0;
         }
-        $this->shouldUpdateDb = true;
     }
 }

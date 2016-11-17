@@ -1,4 +1,5 @@
 import React from 'react';
+import ScrollyText from './ScrollyText';
 
 function TrackItem (props) {
     var track = props.track;
@@ -18,7 +19,7 @@ function TrackItem (props) {
             }
             <div className="track-duration rigid-right">{durationString(track.duration)}</div>
             <div className="track-reorder rigid-left"><i className="fa fa-bars"></i></div>
-            <div className="track-name fluid">{name}</div>
+            <ScrollyText className="track-name fluid">{name}</ScrollyText>
         </div>
     );
 }

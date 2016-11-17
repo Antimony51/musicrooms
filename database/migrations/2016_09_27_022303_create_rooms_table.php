@@ -19,15 +19,11 @@ class CreateRoomsTable extends Migration
                 ->references('id')
                 ->on('users')
                 ->onDelete('set null');
-            $table->string('name')->unique();
+            $table->string('name', 24)->unique();
             $table->enum('visibility', ['public', 'private']);
-            $table->string('title');
-            $table->string('description')->nullable();
-            $table->integer('current_track_id')->unsigned()->nullable();
-            $table->foreign('current_track_id')
-                ->references('id')
-                ->on('tracks')
-                ->onDelete('set null');
+            $table->string('title', 24);
+            $table->text('description')->nullable();
+            $table->integer('user_count')->default(0);
             $table->timestamps();
         });
     }

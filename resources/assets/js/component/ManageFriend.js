@@ -5,7 +5,10 @@ class ManageFriend extends React.Component {
         super(props);
 
         this.state = {
-            user: this.props.user,
+            user: props.user || {
+                name: props.name,
+                displayName: props.displayName
+            },
             waiting: false
         }
     }
