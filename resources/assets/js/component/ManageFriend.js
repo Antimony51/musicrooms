@@ -7,7 +7,8 @@ class ManageFriend extends React.Component {
         this.state = {
             user: props.user || {
                 name: props.name,
-                displayName: props.displayName
+                displayName: props.displayName,
+                friendStatus: props.friendStatus
             },
             waiting: false
         }

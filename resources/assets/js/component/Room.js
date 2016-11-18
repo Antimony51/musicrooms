@@ -22,6 +22,8 @@ class Room extends React.Component {
             queue: [],
             currentTrack: null,
             seek: 0,
+            descriptionExpanded: false,
+            descriptionCanExpand: app.currentRoom.description.indexOf('\n') !== -1
         };
     }
 
@@ -55,7 +57,9 @@ class Room extends React.Component {
             this.state.loading !== nextState.loading ||
             this.state.queue.length !== nextState.queue.length ||
             this.state.users.length !== nextState.users.length ||
-            this.state.seek !== nextState.seek
+            this.state.seek !== nextState.seek ||
+            this.state.descriptionExpanded !== nextState.descriptionExpanded ||
+            this.state.descriptionCanExpand !== nextState.descriptionCanExpand
         ){
             return true;
         }
@@ -131,6 +135,23 @@ class Room extends React.Component {
             if (!_.isNil(newState.currentTrack) && !this.trackData.hasOwnProperty(newState.currentTrack)){
                 newTracks.add(newState.currentTrack);
             }
+
+            if (this.receivedState.roomDataToken != newState.roomDataToken){
+                $.ajax({
+                    url: `/room/${app.currentRoom.name}/data`,
+                    method: 'get',
+                    dataType: 'json',
+                    maxTries: 3,
+                    success: function (data) {
+                        app.currentRoom = data;
+                    },
+                    error: function () {
+                        if (--this.maxTries){
+                            $.ajax(this);
+                        }
+                    }
+                });
+            }
         }
 
         this.receivedState = newState;
@@ -203,10 +224,12 @@ class Room extends React.Component {
                         location = "/rooms";
                     });
             });
+        window.addEventListener('resize', this.checkDescriptionOverflow);
     }
 
     componentWillUnmount(){
         window.removeEventListener('beforeunload', this.handleBeforeUnload);
+        window.removeEventListener('resize', this.checkDescriptionOverflow);
         clearInterval(this.syncInterval);
     }
 
@@ -228,10 +251,66 @@ class Room extends React.Component {
             });
     };
 
+    setDescriptionExpanded(expanded){
+        this.setState({
+            descriptionExpanded: expanded
+        });
+        if (!expanded){
+            this.checkDescriptionOverflow();
+        }
+    }
+
+    checkDescriptionOverflow = () => {
+        if (this.descriptionElement && !this.state.descriptionExpanded){
+            if (!this.state.descriptionCanExpand &&
+                this.descriptionElement.scrollWidth > this.descriptionElement.clientWidth)
+            {
+                this.setState({
+                    descriptionCanExpand: true
+                });
+            }else if (this.state.descriptionCanExpand &&
+                app.currentRoom.description.indexOf('\n') === -1 &&
+                this.descriptionElement.scrollWidth == this.descriptionElement.clientWidth)
+            {
+                this.setState({
+                    descriptionCanExpand: false
+                });
+            }
+        }
+    }
+
+    handleDescriptionRef = (el) => {
+        this.descriptionElement = el;
+        this.checkDescriptionOverflow()
+    }
+
     render() {
         const {
-            loading, queue, users, currentTrack, seek
+            loading, queue, users, currentTrack, seek,
+            descriptionExpanded, descriptionCanExpand
         } = this.state;
+
+        const isOwner = app.currentRoom.owner.name == app.currentUser.name;
+
+        var description = app.currentRoom.description;
+        if (descriptionCanExpand){
+            if (!descriptionExpanded){
+                let firstNl = description.indexOf('\n');
+                description = description.slice(0, firstNl);
+            }else{
+                let lines = description.split('\n');
+                description = (
+                    <div>
+                        {
+                            lines.map((v) => (
+                                <div>{v}</div>
+                            ))
+                        }
+                    </div>
+                );
+            }
+        }
+
         if (loading){
             return (
                 <div className="text-center">
@@ -243,13 +322,50 @@ class Room extends React.Component {
                 <div className="container">
                     <div className="row">
                         <div className="col-sm-10 col-sm-offset-1 text-center">
-                            <h2>{app.currentRoom.title}</h2>
+                            <h2>
+                                {app.currentRoom.title} {
+                                    !_.isNil(app.currentRoom.isSaved) && (
+                                        <SaveRoom room={app.currentRoom} style={{fontSize: '0.66em'}} />
+                                    )
+                                }
+                                <span className="pull-right" style={{marginLeft: '-100%'}}>
+                                    {
+                                        isOwner && (
+                                            <a href={`/room/${app.currentRoom.name}/settings`}
+                                                className="btn btn-default" >
+                                                Settings
+                                            </a>
+                                        )
+                                    }
+                                </span>
+                            </h2>
                             <h5 className="text-muted">
                                 Owner: <a href={'/user/' + app.currentRoom.owner.name}>
                                     {app.currentRoom.owner.displayName}
                                 </a>
-                                <SaveRoom room={app.currentRoom} />
                             </h5>
+                            <div>
+                                <div ref={this.handleDescriptionRef}
+                                    style={descriptionExpanded ? {} : {
+                                        display: 'inline-block',
+                                        width: '100%',
+                                        overflow: 'hidden',
+                                        textOverflow: 'ellipsis',
+                                        whiteSpace: 'nowrap'
+                                    }}>
+                                    { description }
+                                </div>
+                                {
+                                    descriptionCanExpand && (
+                                        <div>
+                                            <a href="javascript:"
+                                                onClick={() => this.setDescriptionExpanded(!descriptionExpanded)}>
+                                                {descriptionExpanded ? 'Show Less' : 'Show More'}
+                                            </a>
+                                        </div>
+                                    )
+                                }
+                            </div>
                         </div>
                     </div>
                     <hr/>
@@ -273,7 +389,9 @@ class Room extends React.Component {
                         <div className="col-sm-4">
                             <div className="panel panel-default users-panel">
                                 <div className="panel-heading">
-                                    <div className="panel-title">Users</div>
+                                    <div className="panel-title">
+                                        Users ({users.length})
+                                    </div>
                                 </div>
                                 <UserList users={users}/>
                             </div>

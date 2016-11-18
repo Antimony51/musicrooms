@@ -119,8 +119,6 @@ class RoomController extends Controller
         $roomState = RoomState::get($room);
         if (Auth::check()){
             $roomState->userSeen($request->user()->name);
-        }else{
-            Log::debug('Not logged in');
         }
         $roomState->save();
         return json_encode($roomState);

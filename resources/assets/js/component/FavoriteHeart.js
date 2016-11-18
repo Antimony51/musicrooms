@@ -1,27 +1,28 @@
 import React from 'react';
 
-class SaveRoom extends React.Component {
+class FavoriteHeart extends React.Component {
 
     constructor(props) {
         super(props);
-        if (props.room){
+        if (props.track){
             this.state = {
-                roomName: props.room.name,
-                checked: props.room.isSaved,
+                trackId: props.track.id,
+                checked: props.track.isFaved,
                 wait: false
             };
         }else{
             this.state = {
-                roomName: props.roomName,
+                trackId: props.trackId,
                 checked: props.checked,
                 wait: false
             };
         }
+
     }
 
     handleClick = () => {
         const {
-            roomName, checked, wait
+            trackId, checked, wait
         } = this.state;
 
         if (!wait){
@@ -30,7 +31,7 @@ class SaveRoom extends React.Component {
             });
             if (checked){
                 $.ajax({
-                    url: '/user/' + app.currentUser.name + '/savedrooms/remove/' + roomName,
+                    url: '/user/' + app.currentUser.name + '/favorites/remove/' + trackId,
                     method: 'POST'
                 })
                     .done(() => {
@@ -39,7 +40,7 @@ class SaveRoom extends React.Component {
                         });
                     })
                     .fail(() => {
-                        alertify.error('Removing saved room failed.');
+                        alertify.error('Removing favorite failed.');
                     })
                     .always(() => {
                         this.setState({
@@ -48,7 +49,7 @@ class SaveRoom extends React.Component {
                     });
             }else{
                 $.ajax({
-                    url: '/user/' + app.currentUser.name + '/savedrooms/add/' + roomName,
+                    url: '/user/' + app.currentUser.name + '/favorites/add/' + trackId,
                     method: 'POST',
                 })
                     .done(() => {
@@ -57,7 +58,7 @@ class SaveRoom extends React.Component {
                         });
                     })
                     .fail(() => {
-                        alertify.error('Saving room failed.');
+                        alertify.error('Adding favorite failed.');
                     })
                     .always(() => {
                         this.setState({
@@ -74,7 +75,7 @@ class SaveRoom extends React.Component {
             checked, wait
         } = this.state;
 
-        var className = 'save-room';
+        var className = 'favorite-heart';
         if (checked){
             className += ' checked';
         }
@@ -92,4 +93,4 @@ class SaveRoom extends React.Component {
 
 }
 
-export default SaveRoom;
+export default FavoriteHeart;

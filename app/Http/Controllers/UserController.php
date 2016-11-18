@@ -96,6 +96,22 @@ class UserController extends Controller
         }
     }
 
+    public function addSavedRoom(User $user, Room $room, Request $request){
+        if ($user->is($request->user())) {
+            $user->savedRooms()->attach($room);
+        }else{
+            abort(403);
+        }
+    }
+
+    public function removeSavedRoom(User $user, Room $room, Request $request){
+        if ($user->is($request->user())) {
+            $user->savedRooms()->detach($room);
+        } else {
+            abort(403);
+        }
+    }
+
     public function updateProfile(User $user, Request $request)
     {
         if ($user->is($request->user())) {

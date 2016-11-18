@@ -14,7 +14,7 @@ function TrackItem (props) {
         <div className="dyn-block-row">
             {
                 app.currentUser && track.owner.name == app.currentUser.name && (
-                    <div className="track-remove rigid-right" onClick={props.onRequestRemove}><i className="fa fa-trash"></i></div>
+                    <div className="icon-button track-remove rigid-right" onClick={props.onRequestRemove}><i className="fa fa-trash"></i></div>
                 )
             }
             <div className="track-duration rigid-right">{durationString(track.duration)}</div>

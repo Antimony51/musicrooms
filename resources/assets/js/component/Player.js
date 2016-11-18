@@ -2,6 +2,7 @@ import React from 'react';
 import ReactPlayer from 'react-player';
 import SeekBar from './SeekBar';
 import ScrollyText from './ScrollyText';
+import FavoriteHeart from './FavoriteHeart';
 
 const youtubeConfig = {};
 const soundcloudConfig = {
@@ -92,9 +93,9 @@ class Player extends React.Component {
                             </ScrollyText>
                         </div>
                     </div>
-                    <div className="row">
+                    <div className="row h5">
                         <div className="col-sm-3 hidden-xs">
-                            <div className="h5">
+                            <div>
                                 {
                                     track ? (
                                         durationString(played * track.duration) + ' / ' + durationString(track.duration)
@@ -105,7 +106,7 @@ class Player extends React.Component {
                             </div>
                         </div>
                         <div className="col-sm-6">
-                            <ScrollyText className="h5 text-center">
+                            <ScrollyText className="text-center">
                                 {
                                     (track && (track.type == 'file' || track.type == 'soundcloud')) && (
                                         track.artist || 'Unknown Artist'
@@ -113,8 +114,12 @@ class Player extends React.Component {
                                 }
                             </ScrollyText>
                         </div>
-                        <div className="col-sm-3">
-
+                        <div className="col-sm-3 text-center-xs text-right-sm">
+                            {
+                                track && !_.isNil(track.isFaved) && (
+                                    <FavoriteHeart track={track} />
+                                )
+                            }
                         </div>
                     </div>
                 </div>

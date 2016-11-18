@@ -17,4 +17,8 @@ class Profile extends Model
     public function iconSmall() {
         return $this->icon_small ?: '/img/noprofileimg_small.png';
     }
+
+    public function addPlay() {
+        $this->plays++;
+    }
 }

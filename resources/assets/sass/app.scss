@@ -62,6 +62,22 @@ $user-icon-large-size: 200px;
   color: $palette-heartred;
 }
 
+.save-room:not(.spinner) {
+  cursor: pointer;
+}
+
+.save-room:not(.spinner) {
+  @extend .fa;
+  @extend .fa-bookmark-o;
+  @extend .text-muted;
+}
+
+.save-room.checked:not(.spinner) {
+  @extend .fa;
+  @extend .fa-bookmark;
+  color: $palette-green;
+}
+
 .spinner {
   @extend .fa;
   @extend .fa-spin;
@@ -124,24 +140,24 @@ $user-icon-large-size: 200px;
 
 .track-remove {
   padding: 10px 15px 10px 5px;
-  cursor: pointer;
-}
-
-.track-remove:not(.wait):not(:hover){
-  @extend .text-muted;
-}
-
-.track-remove.wait {
-  cursor: auto;
-}
-
-.track-remove:hover {
 }
 
 .track-reorder:active {
   cursor: grabbing;
   cursor: -moz-grabbing;
   cursor: -webkit-grabbing;
+}
+
+.icon-button {
+  cursor: pointer;
+}
+
+.icon-button:not(.wait):not(:hover){
+  @extend .text-muted;
+}
+
+.icon-button.wait {
+  cursor: auto;
 }
 
 div.dyn-block-row {
@@ -231,4 +247,59 @@ $seek-bar-bg-color: $panel-inner-border;
   background: -webkit-linear-gradient(left,  rgba(255,255,255,0) 0%,rgba(255,255,255,1) 100%);
   background: linear-gradient(to right,  rgba(255,255,255,0) 0%,rgba(255,255,255,1) 100%);
   filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#00ffffff', endColorstr='#ffffff',GradientType=1 );
+}
+
+.text-left-xs {
+    text-align: left;
+}
+.text-center-xs {
+    text-align: center;
+}
+.text-right-xs {
+    text-align: right;
+}
+@media (min-width: 768px) {
+    .text-left-sm {
+        text-align: left;
+    }
+}
+@media (min-width: 768px) {
+    .text-center-sm {
+        text-align: center;
+    }
+}
+@media (min-width: 768px) {
+    .text-right-sm {
+        text-align: right;
+    }
+}
+@media (min-width: 992px) {
+    .text-left-md {
+        text-align: left;
+    }
+}
+@media (min-width: 992px) {
+    .text-center-md {
+        text-align: center;
+    }
+}
+@media (min-width: 992px) {
+    .text-right-md {
+        text-align: right;
+    }
+}
+@media (min-width: 1200px) {
+    .text-center-lg {
+        text-align: center;
+    }
+}
+@media (min-width: 1200px) {
+    .text-left-lg {
+        text-align: left;
+    }
+}
+@media (min-width: 1200px) {
+    .text-right-lg {
+        text-align: right;
+    }
 }

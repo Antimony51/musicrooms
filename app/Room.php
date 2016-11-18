@@ -52,7 +52,7 @@ class Room extends Model
 
     public function isSaved(){
         if (Auth::check()){
-            return !is_null($this->savedBy()->whereUserId(Auth::user()->id));
+            return !is_null($this->savedBy()->whereUserId(Auth::user()->id)->first());
         }else{
             return null;
         }

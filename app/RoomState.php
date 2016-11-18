@@ -8,6 +8,7 @@ use Auth;
 use Cache;
 use Log;
 use App\Room;
+use App\User;
 
 class RoomState {
 
@@ -20,11 +21,13 @@ class RoomState {
     private $currentTrackEnd = 0;
     public $currentTrackMeta = null;
     public $userCount = 0;
+    public $roomDataToken;
 
     public $queueMeta = [];
     private $userMeta = [];
 
-    private $shouldUpdateDb = false;
+    private $currentTrackChanged = false;
+    private $userCountChanged = false;
 
     public static function get(Room $room){
         $roomState = Cache::rememberForever('room_' . $room->id, function() use ($room){
@@ -37,10 +40,21 @@ class RoomState {
     }
 
     public static function put(Room $room, $roomState){
-        if ($roomState->shouldUpdateDb){
-            $roomState->shouldUpdateDb = false;
+        if ($roomState->userCountChanged){
+            $roomState->userCountChanged = false;
             $room->user_count = $roomState->userCount;
             $room->save();
+        }
+        if ($roomState->currentTrackChanged){
+            $roomState->currentTrackChanged = false;
+            if (!is_null($roomState->currentTrack)){
+                $users = User::whereIn('name', $roomState->users)->get();
+                foreach($users as $user){
+                    $profile = $user->profile;
+                    $profile->addPlay();
+                    $profile->save();
+                }
+            }
         }
         Cache::forever('room_' . $room->id, $roomState);
     }
@@ -48,6 +62,7 @@ class RoomState {
     public function __construct($roomId)
     {
         $this->id = $roomId;
+        $this->roomDataToken = str_random(16);
     }
 
     public function save(){
@@ -133,7 +148,6 @@ class RoomState {
     }
 
     public function update(){
-
         $now = microtime(true);
         while($this->currentTrack && $now > $this->currentTrackEnd){
             $this->advanceQueue();
@@ -164,13 +178,14 @@ class RoomState {
         $newUserCount = sizeof($this->users);
         if ($this->userCount != $newUserCount){
             $this->userCount = $newUserCount;
-            $this->shouldUpdateDb = true;
+            $this->userCountChanged = true;
         }
     }
 
     public function advanceQueue(){
         $this->currentTrack = array_shift($this->queue);
         $this->currentTrackMeta = array_shift($this->queueMeta);
+        $this->currentTrackChanged = true;
         if ($this->currentTrack){
             $duration = $this->currentTrackMeta->duration;
             $this->currentTrackStart = microtime(true);
