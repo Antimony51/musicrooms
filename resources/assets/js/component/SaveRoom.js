@@ -81,12 +81,12 @@ class SaveRoom extends React.Component {
         if (wait){
             className += ' spinner';
         }
-        if (this.props.className){
-            className += ' ' + this.props.className;
-        }
 
         return (
-            <span className={className} style={this.props.style} onClick={this.handleClick} />
+            <span className={this.props.className} style={this.props.style}
+            title={checked ? 'Unsave Room' : 'Save Room'}>
+                <span className={className} onClick={this.handleClick} />
+            </span>
         );
     }
 

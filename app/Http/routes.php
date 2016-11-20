@@ -34,6 +34,7 @@ Route::group(['middleware' => 'auth'], function(){
     Route::group(['prefix' => 'user/{user}'], function(){
         Route::post('favorites/add/{id}', 'UserController@addFavorite');
         Route::post('favorites/remove/{id}', 'UserController@removeFavorite');
+        Route::get('favorites/search', 'UserController@searchFavorites');
         Route::post('savedrooms/add/{room}', 'UserController@addSavedRoom');
         Route::post('savedrooms/remove/{room}', 'UserController@removeSavedRoom');
         Route::post('addfriend', 'UserController@addFriend');

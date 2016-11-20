@@ -17,7 +17,26 @@ class FavoriteHeart extends React.Component {
                 wait: false
             };
         }
+    }
 
+    componentWillReceiveProps(nextProps) {
+        if (nextProps.track){
+            if (nextProps.track.id != this.state.trackId){
+                this.setState({
+                    trackId: nextProps.track.id,
+                    checked: nextProps.track.isFaved,
+                    wait: false
+                });
+            }
+        }else{
+            if (nextProps.trackId != this.state.trackId){
+                this.setState({
+                    trackId: nextProps.trackId,
+                    checked: nextProps.checked,
+                    wait: false
+                });
+            }
+        }
     }
 
     handleClick = () => {
@@ -35,6 +54,9 @@ class FavoriteHeart extends React.Component {
                     method: 'POST'
                 })
                     .done(() => {
+                        if (this.props.onChange){
+                            this.props.onChange(false);
+                        }
                         this.setState({
                             checked: false
                         });
@@ -53,6 +75,9 @@ class FavoriteHeart extends React.Component {
                     method: 'POST',
                 })
                     .done(() => {
+                        if (this.props.onChange){
+                            this.props.onChange(true);
+                        }
                         this.setState({
                             checked: true
                         });
@@ -82,12 +107,12 @@ class FavoriteHeart extends React.Component {
         if (wait){
             className += ' spinner';
         }
-        if (this.props.className){
-            className += ' ' + this.props.className;
-        }
 
         return (
-            <span className={className} style={this.props.style} onClick={this.handleClick} />
+            <span className={this.props.className} style={this.props.style}
+            title={checked ? 'Remove Favorite' : 'Add Favorite'}>
+                <span className={className} onClick={this.handleClick} />
+            </span>
         );
     }
 

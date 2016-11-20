@@ -328,21 +328,22 @@ class Room extends React.Component {
                                         <SaveRoom room={app.currentRoom} style={{fontSize: '0.66em'}} />
                                     )
                                 }
-                                <span className="pull-right" style={{marginLeft: '-100%'}}>
-                                    {
-                                        isOwner && (
-                                            <a href={`/room/${app.currentRoom.name}/settings`}
-                                                className="btn btn-default" >
-                                                Settings
-                                            </a>
-                                        )
-                                    }
-                                </span>
                             </h2>
                             <h5 className="text-muted">
-                                Owner: <a href={'/user/' + app.currentRoom.owner.name}>
-                                    {app.currentRoom.owner.displayName}
-                                </a>
+                                Owner: { isOwner ? 'You' : (
+                                        <a href={'/user/' + app.currentRoom.owner.name}>
+                                            {app.currentRoom.owner.displayName}
+                                        </a>
+                                    )
+                                } {
+                                    isOwner && (
+                                        <a href={`/room/${app.currentRoom.name}/settings`}
+                                            className="btn btn-xs btn-default" >
+                                            Settings
+                                        </a>
+                                    )
+                                }
+
                             </h5>
                             <div>
                                 <div ref={this.handleDescriptionRef}

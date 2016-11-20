@@ -81,7 +81,7 @@ class RoomController extends Controller
     {
         $rooms = Room::whereVisibility('public')
             ->orderBy('user_count', 'desc')
-            ->paginate(20);
+            ->paginate(2);
         $title = "Public Rooms";
         $emptyMessage = "There are no public rooms.";
         return view('room.list', compact('rooms', 'title', 'emptyMessage'));

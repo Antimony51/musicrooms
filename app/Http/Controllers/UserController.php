@@ -82,7 +82,11 @@ class UserController extends Controller
 
     public function addFavorite(User $user, $id, Request $request){
         if ($user->is($request->user())) {
-            $user->favoriteTracks()->attach($id);
+            if (is_null($user->favoriteTracks()->whereTrackId($id)->first())){
+                $user->favoriteTracks()->attach($id);
+            }else{
+                abort(400);
+            }
         }else{
             abort(403);
         }
@@ -96,9 +100,22 @@ class UserController extends Controller
         }
     }
 
+    public function searchFavorites(User $user, Request $request){
+        $queryString = '%' . $request->input('query', '') . '%';
+        $perPage = $request->input('perPage', 10);
+        return ($user->favoriteTracks()->where(function ($query) use ($queryString){
+            $query->where('title', 'like', $queryString)
+                ->orWhere('artist', 'like', $queryString);
+        })->paginate($perPage));
+    }
+
     public function addSavedRoom(User $user, Room $room, Request $request){
         if ($user->is($request->user())) {
-            $user->savedRooms()->attach($room);
+            if (is_null($user->savedRooms()->whereRoomId($room->id)->first())){
+                $user->savedRooms()->attach($room);
+            }else{
+                abort(400);
+            }
         }else{
             abort(403);
         }

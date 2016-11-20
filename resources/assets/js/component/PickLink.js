@@ -219,7 +219,9 @@ class PickLink extends React.Component {
                                     )
                                 }></i>
                             </span>
-                            <input type="text" className="form-control" name="url" onChange={this.handleOnChange} autoComplete="off" />
+                            <input type="text" className="form-control" name="url"
+                                onChange={this.handleOnChange} autoComplete="off"
+                                ref={(el) => this.input = el}/>
                         </div>
                         {
                             error ? (

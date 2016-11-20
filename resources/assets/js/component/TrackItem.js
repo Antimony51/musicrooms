@@ -18,7 +18,6 @@ function TrackItem (props) {
                 )
             }
             <div className="track-duration rigid-right">{durationString(track.duration)}</div>
-            <div className="track-reorder rigid-left"><i className="fa fa-bars"></i></div>
             <ScrollyText className="track-name fluid">{name}</ScrollyText>
         </div>
     );

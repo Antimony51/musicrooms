@@ -41,6 +41,11 @@ $user-icon-large-size: 200px;
   color: $palette-soundcloud;
 }
 
+.hovering {
+  transform-origin: center;
+  transform: scale(1.2);
+}
+
 .tabbed-panel {
   border-top: none;
   border-top-left-radius: 0;
@@ -48,12 +53,14 @@ $user-icon-large-size: 200px;
 }
 
 .favorite-heart:not(.spinner) {
-  cursor: pointer;
-}
-
-.favorite-heart:not(.spinner) {
   @extend .fa;
   @extend .fa-heart-o;
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+
+.favorite-heart:not(.spinner):hover {
+  @extend .hovering;
 }
 
 .favorite-heart.checked:not(.spinner) {
@@ -63,13 +70,14 @@ $user-icon-large-size: 200px;
 }
 
 .save-room:not(.spinner) {
-  cursor: pointer;
-}
-
-.save-room:not(.spinner) {
   @extend .fa;
   @extend .fa-bookmark-o;
-  @extend .text-muted;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.save-room:not(.spinner):hover {
+  @extend .hovering;
 }
 
 .save-room.checked:not(.spinner) {
@@ -148,12 +156,13 @@ $user-icon-large-size: 200px;
   cursor: -webkit-grabbing;
 }
 
-.icon-button {
+.icon-button:not(.wait) {
   cursor: pointer;
+  transition: transform 0.1s;
 }
 
-.icon-button:not(.wait):not(:hover){
-  @extend .text-muted;
+.icon-button:not(.wait):hover{
+  @extend .hovering;
 }
 
 .icon-button.wait {
@@ -181,6 +190,27 @@ div.dyn-block-row {
 $seek-bar-color: black;
 $seek-bar-bg-color: $panel-inner-border;
 
+@mixin seek-bar-end {
+  content: '';
+  background-color: $seek-bar-color;
+  width: 0px;
+  height: 0px;
+  position: absolute;
+  right: 0px;
+  top: 0px;
+  border-radius: 0px;
+  transition: all 0.5s;
+}
+
+@mixin seek-bar-end-hover {
+  width: 16px;
+  height: 16px;
+  right: -8px;
+  top: -8px;
+  border-radius: 8px;
+  transition: all 0.1s;
+}
+
 .seek-bar {
   padding: 4px;
   border: 1px solid $panel-inner-border;
@@ -188,41 +218,53 @@ $seek-bar-bg-color: $panel-inner-border;
   cursor: pointer;
 
   .bg-bar {
-    border: 2px solid $seek-bar-bg-color;
+    background-color: $seek-bar-bg-color;
+    min-width: 4px;
+    min-height: 4px;
     border-radius: 2px;
-  }
-
-  .bg-bar + .fill-bar {
-    margin-top: -4px;
+    position: relative;
   }
 
   .fill-bar {
     border: 2px solid $seek-bar-color;
     border-radius: 2px;
-    position: relative;
-  }
-
-  .fill-bar:after {
-    content: '';
-    background-color: $seek-bar-color;
-    width: 0px;
-    height: 0px;
     position: absolute;
-    right: 0px;
-    top: 0px;
-    border-radius: 0px;
-    transition: all 0.5s;
+    left: 0;
   }
-}
 
-.seek-bar:hover {
-  .fill-bar:after {
-    width: 16px;
-    height: 16px;
-    right: -8px;
-    top: -8px;
-    border-radius: 8px;
-    transition: all 0.1s;
+  &:not(.vertical){
+    .fill-bar:after {
+      @include seek-bar-end;
+    }
+
+    &:not(.locked):hover{
+      .fill-bar:after {
+        @include seek-bar-end-hover;
+      }
+    }
+  }
+
+  &.vertical{
+    display: inline-block;
+    height: 100%;
+
+    .bg-bar {
+      height: 100%;
+    }
+
+    .fill-bar {
+      bottom: 0;
+    }
+
+    .fill-bar:before {
+      @include seek-bar-end;
+    }
+
+    &:not(.locked):hover{
+      .fill-bar:before {
+        @include seek-bar-end-hover;
+      }
+    }
   }
 }
 
@@ -247,6 +289,42 @@ $seek-bar-bg-color: $panel-inner-border;
   background: -webkit-linear-gradient(left,  rgba(255,255,255,0) 0%,rgba(255,255,255,1) 100%);
   background: linear-gradient(to right,  rgba(255,255,255,0) 0%,rgba(255,255,255,1) 100%);
   filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#00ffffff', endColorstr='#ffffff',GradientType=1 );
+}
+
+.spacer-after:after{
+  content: "|";
+  opacity: 0.2;
+  margin-left: 0.5em;
+  margin-right: 0.5em;
+}
+
+.spacer-before:before{
+  content: "|";
+  opacity: 0.2;
+  margin-left: 0.5em;
+  margin-right: 0.5em;
+}
+
+.fa-volume-mute {
+  @extend .fa-volume-off;
+
+  &:after {
+    @extend .fa;
+    @extend .text-danger;
+    content: "\f00d"; // .fa-times
+    font-size: 0.5em;
+    vertical-align: middle;
+    margin-bottom: -0.25em;
+    margin-left: 0.1em;
+  }
+}
+
+.pick-row {
+  cursor: pointer;
+
+  &:hover {
+    @extend .active;
+  }
 }
 
 .text-left-xs {

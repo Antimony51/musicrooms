@@ -1,6 +1,7 @@
 import React from 'react';
 import Modal from 'react-modal';
 import PickLink from './PickLink';
+import PickFavorite from './PickFavorite';
 
 const modalStyle = {
     overlay: {
@@ -52,14 +53,21 @@ class AddTrackButton extends React.Component {
     };
 
     handleAfterOpen = () => {
+        var selectedTab = this.state.selectedTab;
+        if (selectedTab == 'link'){
+            $(this.pickLink.input).focus();
+        }else if (selectedTab == 'file'){
 
+        }else if (selectedTab == 'fav'){
+            $(this.pickFavorite.input).focus();
+        }
     };
 
     handleRequestClose = () => {
         this.closeModal();
     };
 
-    handleOnSelectLink = (track) => {
+    handleSelectTrack = (track) => {
         this.closeModal();
         $.ajax({
             url: '/room/' + app.currentRoom.name + '/addtrack',
@@ -112,15 +120,21 @@ class AddTrackButton extends React.Component {
                                     <li className={selectedTab == 'file' ? 'active' : ''}>
                                         <a href="javascript:" onClick={() => this.changeTab('file')}>File</a>
                                     </li>
+                                    <li className={selectedTab == 'fav' ? 'active' : ''}>
+                                        <a href="javascript:" onClick={() => this.changeTab('fav')}>Favorite</a>
+                                    </li>
                                 </ul>
                             </nav>
                         </div>
                         <div className="panel-body">
                             <div className={selectedTab == 'link' ? '' : 'hidden'}>
-                                <PickLink onSelect={this.handleOnSelectLink} />
+                                <PickLink ref={(el) => this.pickLink = el} onSelect={this.handleSelectTrack} />
                             </div>
                             <div className={selectedTab == 'file' ? '' : 'hidden'}>
 
+                            </div>
+                            <div className={selectedTab == 'fav' ? '' : 'hidden'}>
+                                <PickFavorite ref={(el) => this.pickFavorite = el} onSelect={this.handleSelectTrack} />
                             </div>
                         </div>
                     </div>

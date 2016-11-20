@@ -11,6 +11,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import ManageFriend from './component/ManageFriend';
 import FavoriteHeart from './component/FavoriteHeart';
+import CopyLink from './component/CopyLink';
 
 $.ajaxSetup({
     data: {
@@ -39,7 +40,12 @@ $( document ).ready(function() {
         ReactDOM.render(<FavoriteHeart trackId={$v.attr('data-track-id')} checked={$v.attr('data-checked')} />, v);
     });
 
-    $('.manage-friend').each(function(i, v){
+    $('.copy-link-root').each(function (i, v){
+        var $v = $(v);
+        ReactDOM.render(<CopyLink link={$v.attr('data-link')} />, v);
+    });
+
+    $('.manage-friend-root').each(function(i, v){
         var $v = $(v);
         ReactDOM.render(
             <ManageFriend
