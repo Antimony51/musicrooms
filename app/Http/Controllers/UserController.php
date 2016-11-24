@@ -8,6 +8,8 @@ use Auth;
 use Cache;
 use Validator;
 use App\Room;
+use Imagick;
+use Storage;
 
 class UserController extends Controller
 {
@@ -150,6 +152,26 @@ class UserController extends Controller
             }
 
             $profile = $user->profile;
+
+            if ($request->hasFile('icon')){
+                $icon = $request->file('icon');
+                if (!$icon->isValid()){
+                    abort(400, "Error while uploading");
+                }
+
+                $im = new Imagick($icon->getPathname());
+                $im->setImageFormat('png');
+                $im->thumbnailImage(200, 200, true, true);
+                $largePath = 'userimg/' . $user->name . '_large.png';
+                Storage::disk('public')->put($largePath, $im->getImageBlob());
+                $im->thumbnailImage(48, 48, true, true);
+                $smallPath = 'userimg/' . $user->name . '_small.png';
+                Storage::disk('public')->put($smallPath, $im->getImageBlob());
+
+                $profile->icon_large = '/' . $largePath;
+                $profile->icon_small = '/' . $smallPath;
+            }
+
             $profile->bio = $data['bio'];
             $profile->cosmetic_name = $data['cosmetic-name'];
             $profile->save();
@@ -164,10 +186,12 @@ class UserController extends Controller
     {
         $validator = Validator::make($data, [
             'cosmetic-name' => 'max:24',
+            'icon' => 'file|image|max:100000',
             'bio' => 'max:1000'
         ]);
         $validator->setAttributeNames([
             'cosmetic-name' => 'cosmetic name',
+            'icon' => 'profile picture',
             'bio' => 'about me'
         ]);
         return $validator;

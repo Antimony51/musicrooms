@@ -108,7 +108,7 @@ class Player extends React.Component {
                             <ScrollyText className="h3 text-center">
                                 {
                                     track ? (
-                                        track.title || 'Unknown Title' + (
+                                        (track.title || 'Unknown Title') + (
                                             (track.type == 'file' || track.type == 'soundcloud') ? (
                                                 ' - ' + (track.artist || 'Unknown Artist')
                                             ) : ''
@@ -163,7 +163,7 @@ class Player extends React.Component {
                     {
                         track && <ReactPlayer
                             ref={(player) => this.player = player}
-                            url={track.link}
+                            url={track.type == 'file' ? (track.link + '?room=' + app.currentRoom.name) : track.link}
                             playing={playing}
                             volume={mute ? 0 : volume}
                             youtubeConfig={youtubeConfig}

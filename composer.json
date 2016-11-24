@@ -10,7 +10,8 @@
         "laravelcollective/html": "^5.2",
         "doctrine/dbal": "^2.5",
         "hootlex/laravel-friendships": "^1.0",
-        "captbaritone/transcode-to-mp3-stream": "@dev"
+        "predis/predis": "^1.1",
+        "php-ffmpeg/php-ffmpeg": "^0.6.1"
     },
     "require-dev": {
         "fzaninotto/faker": "~1.4",

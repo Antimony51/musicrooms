@@ -2,6 +2,7 @@ import React from 'react';
 import Modal from 'react-modal';
 import PickLink from './PickLink';
 import PickFavorite from './PickFavorite';
+import PickFile from './PickFile';
 
 const modalStyle = {
     overlay: {
@@ -56,8 +57,6 @@ class AddTrackButton extends React.Component {
         var selectedTab = this.state.selectedTab;
         if (selectedTab == 'link'){
             $(this.pickLink.input).focus();
-        }else if (selectedTab == 'file'){
-
         }else if (selectedTab == 'fav'){
             $(this.pickFavorite.input).focus();
         }
@@ -65,6 +64,11 @@ class AddTrackButton extends React.Component {
 
     handleRequestClose = () => {
         this.closeModal();
+    };
+
+    handleSelectFile = (files) => {
+        this.closeModal();
+        this.props.onRequestUpload(files);
     };
 
     handleSelectTrack = (track) => {
@@ -131,7 +135,7 @@ class AddTrackButton extends React.Component {
                                 <PickLink ref={(el) => this.pickLink = el} onSelect={this.handleSelectTrack} />
                             </div>
                             <div className={selectedTab == 'file' ? '' : 'hidden'}>
-
+                                <PickFile onSelect={this.handleSelectFile} />
                             </div>
                             <div className={selectedTab == 'fav' ? '' : 'hidden'}>
                                 <PickFavorite ref={(el) => this.pickFavorite = el} onSelect={this.handleSelectTrack} />

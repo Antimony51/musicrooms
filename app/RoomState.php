@@ -4,7 +4,6 @@ namespace App;
 
 use App\Http\Requests\Request;
 use Carbon\Carbon;
-use Auth;
 use Cache;
 use Log;
 use App\Room;
@@ -81,8 +80,9 @@ class RoomState {
             $meta->seen();
             $this->userMeta[$userName] = $meta;
             $this->updateUserCount();
+            return true;
         }else{
-            abort(403);
+            return false;
         }
     }
 

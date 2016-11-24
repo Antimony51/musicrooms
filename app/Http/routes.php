@@ -4,33 +4,35 @@ Route::auth();
 Route::get('home', 'HomeController@index');
 Route::get('', 'HomeController@index');
 
-Route::group(['prefix' => 'user/{user}'], function(){
-    Route::get('', 'UserController@showOverview')->name('user');
-    Route::get('overview', 'UserController@showOverview')->name('profileOverview');
-    Route::get('favorites', 'UserController@showFavorites')->name('profileFavorites');
-    Route::get('friends', 'UserController@showFriends')->name('profileFriends');
-    Route::get('rooms', 'UserController@showRooms')->name('profileRooms');
-    Route::get('data', function(App\User $user) {return $user;});
-});
-
-Route::get('admin/users', 'UserController@showUserList');
-Route::get('admin/rooms', 'RoomController@showAllRooms');
-
-Route::get('rooms', 'RoomController@showPublicRooms')->name('publicRooms');
-Route::group(['prefix' => 'room/{room}'], function(){
-    Route::get('', 'RoomController@show')->name('room');
-    Route::get('syncme', 'RoomController@syncMe')->name('syncMe');
-    Route::post('join', 'RoomController@join')->name('joinRoom');
-    Route::post('leave', 'RoomController@leave')->name('leaveRoom');
-    Route::post('addtrack', 'RoomController@addTrack');
-    Route::post('removetrack', 'RoomController@removeTrack');
-    Route::get('data', function(App\Room $room) {return $room;});
-    Route::get('getdata', 'RoomController@getData');
-});
-
-Route::get('track/{track}/data', function(App\Track $track) {return $track;});
-
 Route::group(['middleware' => 'auth'], function(){
+    Route::group(['prefix' => 'user/{user}'], function(){
+        Route::get('', 'UserController@showOverview')->name('user');
+        Route::get('overview', 'UserController@showOverview')->name('profileOverview');
+        Route::get('favorites', 'UserController@showFavorites')->name('profileFavorites');
+        Route::get('friends', 'UserController@showFriends')->name('profileFriends');
+        Route::get('rooms', 'UserController@showRooms')->name('profileRooms');
+        Route::get('data', function(App\User $user) {return $user;});
+    });
+
+    Route::get('rooms', 'RoomController@showPublicRooms')->name('publicRooms');
+    Route::group(['prefix' => 'room/{room}'], function(){
+        Route::get('', 'RoomController@show')->name('room');
+        Route::get('syncme', 'RoomController@syncMe')->name('syncMe');
+        Route::post('join', 'RoomController@join')->name('joinRoom');
+        Route::post('leave', 'RoomController@leave')->name('leaveRoom');
+        Route::post('addtrack', 'RoomController@addTrack');
+        Route::post('removetrack', 'RoomController@removeTrack');
+        Route::get('data', function(App\Room $room) {return $room;});
+        Route::get('getdata', 'RoomController@getData');
+    });
+
+    Route::get('stream/{uri}', 'RoomController@getStream');
+
+    Route::get('admin/users', 'UserController@showUserList');
+    Route::get('admin/rooms', 'RoomController@showAllRooms');
+
+    Route::get('track/{track}/data', function(App\Track $track) {return $track;});
+
     Route::group(['prefix' => 'user/{user}'], function(){
         Route::post('favorites/add/{id}', 'UserController@addFavorite');
         Route::post('favorites/remove/{id}', 'UserController@removeFavorite');

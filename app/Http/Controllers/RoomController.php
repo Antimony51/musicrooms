@@ -14,6 +14,9 @@ use DateInterval;
 use DateTimeImmutable;
 use Log;
 use Validator;
+use Illuminate\Support\Facades\Input;
+use FFMpeg\FFMpeg;
+use FFMpeg\Format\Audio\Mp3;
 
 class RoomController extends Controller
 {
@@ -81,7 +84,7 @@ class RoomController extends Controller
     {
         $rooms = Room::whereVisibility('public')
             ->orderBy('user_count', 'desc')
-            ->paginate(2);
+            ->paginate(10);
         $title = "Public Rooms";
         $emptyMessage = "There are no public rooms.";
         return view('room.list', compact('rooms', 'title', 'emptyMessage'));
@@ -91,7 +94,7 @@ class RoomController extends Controller
     {
         $rooms = $request->user()->savedRooms()
             ->orderBy('user_count', 'desc')
-            ->paginate(20);
+            ->paginate(10);
         $title = "Saved Rooms";
         $emptyMessage = "You have no saved rooms.";
         return view('room.list', compact('rooms', 'title', 'emptyMessage'));
@@ -99,7 +102,7 @@ class RoomController extends Controller
 
     public function showAllRooms()
     {
-        $rooms = Room::orderBy('user_count', 'desc')->paginate(20);
+        $rooms = Room::orderBy('user_count', 'desc')->paginate(10);
         $title = "All Rooms";
         $emptyMessage = "There are no rooms.";
         return view('room.list', compact('rooms', 'title', 'emptyMessage'));
@@ -109,7 +112,7 @@ class RoomController extends Controller
     {
         $rooms = $request->user()->rooms()
             ->orderBy('user_count', 'desc')
-            ->paginate(20);
+            ->paginate(10);
         $title = "My Rooms";
         $emptyMessage = "You don't own any rooms.";
         return view('room.list', compact('rooms', 'title', 'emptyMessage'));
@@ -117,19 +120,17 @@ class RoomController extends Controller
 
     public function syncMe (Room $room, Request $request){
         $roomState = RoomState::get($room);
-        if (Auth::check()){
-            $roomState->userSeen($request->user()->name);
-        }
+        $roomState->userSeen($request->user()->name);
         $roomState->save();
         return json_encode($roomState);
     }
 
     public function join (Room $room, Request $request){
         $roomState = RoomState::get($room);
-        if (Auth::check()) {
-            $roomState->userJoin($request->user()->name);
-            $roomState->save();
+        if (!$roomState->userJoin($request->user()->name)){
+            return response('User already in room', 403);
         }
+        $roomState->save();
         return json_encode($roomState);
     }
 
@@ -210,19 +211,51 @@ class RoomController extends Controller
                         $newTrack->artist = $data->user->username;
                         $newTrack->duration = $data->duration / 1000;
                     }
-                }else if ($type == 'file' && $request->hasFile('audiofile')){
-                    $file = $request->file('audiofile');
+                }else if ($type == 'file' && $request->hasFile('file')){
+                    $file = $request->file('file');
                     if (!$file->isValid()){
-                        abort(400);
+                        abort(400, "Error while uploading");
                     }
-                    $file->store('uploads/audio');
-                    abort(202);
+                    $mime = $file->getMimeType();
+                    if (!$mime || !preg_match('/^audio\//', $mime)){
+                        abort(400, "Invalid format");
+                    }
+                    $uri = hash_file('sha1', $file->path());
+
+                    $ffmpeg = FFMpeg::create();
+                    $ffprobe = $ffmpeg->getFFProbe();
+                    $format = $ffprobe->format($file->path());
+                    $duration = $format->get('duration');
+                    $tags = $format->get('tags');
+
+                    if (is_null($duration)){
+                        abort(400, "Could not read duration");
+                    }
+
+                    $newTrack->type = $type;
+                    $newTrack->uri = $uri;
+                    $newTrack->link = "/stream/$uri";
+                    $newTrack->duration = $duration;
+
+                    if ($tags){
+                        foreach ($tags as $key => $value) {
+                            if (preg_match('/^title$/i', $key)){
+                                $newTrack->title = $tags[$key];
+                            }else if (preg_match('/^artist$/i', $key)){
+                                $newTrack->artist = $tags[$key];
+                            }else if (preg_match('/^album$/i', $key)){
+                                $newTrack->album = $tags[$key];
+                            }
+                        }
+                    }
                 }else{
-                    abort(400);
+                    abort(400, "Invalid type");
                 }
 
                 $track = Track::whereType($type)
                     ->whereUri($uri)->first();
+
+                $isNew = false;
 
                 if (!is_null($track)){
                     // keep metadata fresh
@@ -231,12 +264,20 @@ class RoomController extends Controller
                     $track->album = $newTrack->album;
                 }else{
                     $track = $newTrack;
+                    $isNew = true;
                 }
 
                 $track->save();
 
+                if ($type == 'file' && $isNew){
+                    $audio = $ffmpeg->open($file->path());
+                    $outputFormat = new Mp3();
+                    $audio->save($outputFormat, storage_path("uploads/audio/$uri.mp3"));
+                }
+
                 $roomState->addTrack($track->id, $track->duration, $user->name);
                 $roomState->save();
+
             }else{
                 abort(403);
             }
@@ -256,6 +297,35 @@ class RoomController extends Controller
                 abort(403);
             }
             $roomState->save();
+        }else{
+            abort(403);
+        }
+    }
+
+    public function getStream ($uri, Request $request){
+        $track = Track::whereType('file')
+            ->whereUri($uri)->first();
+        if (is_null($track)){
+            abort(404);
+        }
+        if ($request->has('room')){
+            $roomName = $request->input('room');
+            $room = Room::whereName($roomName)->first();
+            if ($room){
+                $roomState = RoomState::get($room);
+                if (!$roomState){
+                    abort(500);
+                }
+                if ($roomState->hasUser($request->user()->name) &&
+                    $roomState->currentTrack === $track->id)
+                {
+                    return response()->file(storage_path("uploads/audio/$uri.mp3"));
+                }else{
+                    abort(403);
+                }
+            }else{
+                abort(400);
+            }
         }else{
             abort(403);
         }

@@ -7,8 +7,9 @@ import SaveRoom from './SaveRoom';
 
 class Room extends React.Component {
 
-    syncInterval = null;
+    syncTimer = null;
     syncFails = 0;
+    doSync = true;
     receivedState = null;
     userData = {};
     trackData = {};
@@ -23,7 +24,10 @@ class Room extends React.Component {
             currentTrack: null,
             seek: 0,
             descriptionExpanded: false,
-            descriptionCanExpand: app.currentRoom.description.indexOf('\n') !== -1
+            descriptionCanExpand: app.currentRoom.description.indexOf('\n') !== -1,
+            uploadProgress: null,
+            transcoding: false,
+            uploads: []
         };
     }
 
@@ -59,22 +63,34 @@ class Room extends React.Component {
             this.state.users.length !== nextState.users.length ||
             this.state.seek !== nextState.seek ||
             this.state.descriptionExpanded !== nextState.descriptionExpanded ||
-            this.state.descriptionCanExpand !== nextState.descriptionCanExpand
+            this.state.descriptionCanExpand !== nextState.descriptionCanExpand ||
+            this.state.uploadProgress !== nextState.uploadProgress ||
+            this.state.transcoding !== nextState.transcoding ||
+            this.state.uploads.length !== nextState.uploads.length
         ){
             return true;
         }
 
-        for (let i = 0; i < this.state.queue.length; i++){
+        for (let i = 0, len = this.state.queue.length; i < len; i++){
             if ((this.state.queue[i] ? !nextState.queue[i] : nextState.queue[i]) ||
                 this.state.queue[i] && nextState.queue[i] &&
-                    this.state.queue[i].key !== nextState.queue[i].key)
+                this.state.queue[i].key !== nextState.queue[i].key)
             {
                 return true;
             }
         }
 
-        for (let i = 0; i < this.state.users.length; i++){
+        for (let i = 0, len = this.state.users.length; i < len; i++){
             if (this.state.users[i] !== nextState.users[i]){
+                return true;
+            }
+        }
+
+        for (let i = 0, len = this.state.uploads.length; i < len; i++){
+            if ((this.state.uploads[i] ? !nextState.uploads[i] : nextState.uploads[i]) ||
+                this.state.uploads[i] && nextState.uploads[i] &&
+                this.state.uploads[i].name !== nextState.uploads[i].name)
+            {
                 return true;
             }
         }
@@ -180,6 +196,10 @@ class Room extends React.Component {
     }
 
     sync = () => {
+        if (!this.doSync){
+            return;
+        }
+        var startTime = Date.now();
         $.ajax({
             url: `/room/${app.currentRoom.name}/syncme`,
             method: 'get',
@@ -198,6 +218,12 @@ class Room extends React.Component {
                             location = "/rooms";
                         });
                 }
+            })
+            .always(() => {
+                var now = Date.now();
+                if (this.doSync){
+                    setTimeout(this.sync, Math.max(1000 - (now - startTime),0));
+                }
             });
     }
 
@@ -215,11 +241,11 @@ class Room extends React.Component {
                 }
                 this.processStateChange(data);
                 window.addEventListener('beforeunload', this.handleBeforeUnload);
-                this.syncInterval = setInterval(this.sync, 1000);
+                this.syncTimer = setTimeout(this.sync, 1000);
             })
-            .fail(() => {
+            .fail((xhr) => {
                 this.props.unmount();
-                alertify.alert('Error', 'Failed to join',
+                alertify.alert('Error', 'Failed to join: ' + xhr.responseText,
                     function(){
                         location = "/rooms";
                     });
@@ -230,7 +256,8 @@ class Room extends React.Component {
     componentWillUnmount(){
         window.removeEventListener('beforeunload', this.handleBeforeUnload);
         window.removeEventListener('resize', this.checkDescriptionOverflow);
-        clearInterval(this.syncInterval);
+        clearTimeout(this.syncTimer);
+        this.doSync = false;
     }
 
     handleRequestRemove = (track) => {
@@ -249,6 +276,93 @@ class Room extends React.Component {
             .fail(() => {
                 alertify.error('Removing track failed');
             });
+    };
+
+    startUpload () {
+
+        var data = new FormData();
+        data.append('type', 'file');
+        data.append('_token', app.csrf_token);
+        data.append('file', this.state.uploads[0]);
+
+        var xhr = new XMLHttpRequest();
+
+        xhr.upload.addEventListener('progress', this.handleUploadProgress);
+        xhr.addEventListener('error', this.handleUploadFailed);
+        xhr.addEventListener('readystatechange', () => {
+            if (xhr.readyState == 4){
+                if (xhr.status >= 400){
+                    this.handleUploadFailed();
+                }else{
+                    this.handleUploadSuccess();
+                }
+                this.handleUploadComplete();
+            }
+        });
+
+        this.setState({
+            uploadProgress: 0,
+            transcoding: false
+        });
+
+        this.transcodingTimeout = null;
+
+        xhr.open('POST', `/room/${app.currentRoom.name}/addtrack`);
+        xhr.send(data);
+
+    }
+
+    transcodingTimeout = null;
+
+    handleUploadProgress = (ev) => {
+        this.setState({
+            uploadProgress: ev.loaded / ev.total
+        });
+
+        if (!this.state.transcoding && _.isNull(this.transcodingTimeout) && ev.loaded == ev.total){
+            this.transcodingTimeout = setTimeout(()=>{
+                this.setState({
+                    transcoding: true
+                });
+            }, 800);
+        }
+    };
+
+    handleUploadFailed = () => {
+        alertify.error('Upload failed.');
+    };
+
+    handleUploadSuccess = () => {
+    };
+
+    handleUploadComplete = () => {
+        var uploads = this.state.uploads.slice();
+        uploads.shift();
+        clearTimeout(this.transcodingTimeout);
+        this.transcodingTimeout = null;
+        this.setState({
+            uploads: uploads,
+            uploadProgress: 0,
+            transcoding: false
+        }, () => {
+            if (this.state.uploads.length > 0){
+                this.startUpload();
+            }
+        });
+    };
+
+    handleRequestUpload = (files) => {
+        var uploads = this.state.uploads.slice();
+        for (let i = 0, len = files.length; i < len; i++){
+            uploads.push(files[i]);
+        }
+        this.setState({
+            uploads: uploads
+        }, () => {
+            if (this.state.uploads.length == 1){
+                this.startUpload();
+            }
+        });
     };
 
     setDescriptionExpanded(expanded){
@@ -287,7 +401,8 @@ class Room extends React.Component {
     render() {
         const {
             loading, queue, users, currentTrack, seek,
-            descriptionExpanded, descriptionCanExpand
+            descriptionExpanded, descriptionCanExpand,
+            uploadProgress, uploads, transcoding
         } = this.state;
 
         const isOwner = app.currentRoom.owner.name == app.currentUser.name;
@@ -381,7 +496,9 @@ class Room extends React.Component {
                         <div className="col-sm-6 col-sm-offset-1">
                             <div className="panel panel-default queue-panel">
                                 <div className="panel-heading">
-                                    <AddTrackButton className="pull-right" buttonClass="btn-xs" />
+                                    <AddTrackButton className="pull-right"
+                                        buttonClass="btn-xs"
+                                        onRequestUpload={this.handleRequestUpload} />
                                     <div className="panel-title">Queue</div>
                                 </div>
                                 <Queue tracks={queue} onRequestRemove={this.handleRequestRemove}/>
@@ -398,6 +515,42 @@ class Room extends React.Component {
                             </div>
                         </div>
                     </div>
+                    {
+                        (uploads.length && !_.isNil(uploadProgress)) ? (
+                            <div className="navbar navbar-default navbar-fixed-bottom">
+                                <style>{`
+                                    body { padding-bottom: 70px; }
+                                `}</style>
+                                <div className="container">
+                                    <div>
+                                        Uploading {uploads[0].name} {
+                                            (uploads.length > 1) && (
+                                                <span>( {uploads.length-1} in queue )</span>
+                                            )
+                                        }
+                                    </div>
+                                    <div className="progress">
+                                        {
+                                            !transcoding ? (
+                                                <div className="progress-bar" role="progressbar"
+                                                    aria-valuenow={uploadProgress * 100} aria-valuemin="0" aria-valuemax="100"
+                                                    style={{width: (uploadProgress * 100) + '%'}}>
+                                                    {Math.floor(uploadProgress * 100)}%
+                                                </div>
+                                            ) : (
+                                                <div className="progress-bar progress-bar-success progress-bar-striped active" role="progressbar"
+                                                    aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"
+                                                    style={{width: '100%'}}>
+                                                    Transcoding...
+                                                </div>
+                                            )
+                                        }
+
+                                    </div>
+                                </div>
+                            </div>
+                        ) : null
+                    }
                 </div>
             );
         }

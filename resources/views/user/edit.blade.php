@@ -7,7 +7,7 @@
                 <div class="panel panel-default">
                     <div class="panel-heading">Edit Profile</div>
                     <div class="panel-body">
-                        <form class="form-horizontal" role="form" method="POST" action="{{ route('updateProfile', ['user' => $user]) }}">
+                        <form class="form-horizontal" role="form" method="POST" action="{{ route('updateProfile', ['user' => $user]) }}" enctype="multipart/form-data">
                             {{ csrf_field() }}
 
                             <div class="form-group{{ $errors->has('cosmetic-name') ? ' has-error' : '' }}">
@@ -19,6 +19,20 @@
                                     @if ($errors->has('cosmetic-name'))
                                         <span class="help-block">
                                             <strong>{{ $errors->first('cosmetic-name') }}</strong>
+                                        </span>
+                                    @endif
+                                </div>
+                            </div>
+
+                            <div class="form-group{{ $errors->has('icon') ? ' has-error' : '' }}">
+                                <label for="icon" class="col-sm-4 control-label">Profile Picture</label>
+
+                                <div class="col-sm-6">
+                                    <input id="icon" type="file" class="form-control" name="icon">
+
+                                    @if ($errors->has('icon'))
+                                        <span class="help-block">
+                                            <strong>{{ $errors->first('icon') }}</strong>
                                         </span>
                                     @endif
                                 </div>

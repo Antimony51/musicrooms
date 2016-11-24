@@ -9,38 +9,41 @@ class PickFile extends React.Component {
         super(props);
 
         this.state = {
-            track: null,
-            error: null,
-            wait: false
+            files: [],
+            error: null
         };
+    }
+
+    handleChange = (ev) => {
+        this.setState({
+            files: ev.target.files
+        });
     }
 
     handleSubmit = (ev) => {
         ev.preventDefault();
 
-        if (!this.state.wait){
-            if (this.state.track && this.state.track.type && this.state.track.uri){
-                this.props.onSelect(this.state.track);
-            }else{
-                if (!this.state.error){
-                    this.setState({
-                        error: 'Not a valid YouTube or Soundcloud URL'
-                    });
-                }
+        var files = this.state.files;
+        if (files.length){
+            this.props.onSelect(files);
+        }else{
+            if (!this.state.error){
+                this.setState({
+                    error: 'No files selected'
+                });
             }
         }
     };
 
     render() {
-        var type = this.state.track ? this.state.track.type : null;
         var error = this.state.error;
-        var wait = this.state.wait;
+        var hasFiles = this.state.files.length > 0;
 
         return (
             <form className="form-horizontal" onSubmit={this.handleSubmit}>
                 <div className={ 'form-group' + (error ? ' has-error' : '') }>
                     <div className="col-md-12">
-                        <input type="file" className="form-control" name="audiofile" />
+                        <input type="file" className="form-control" name="file" onChange={this.handleChange} multiple />
                         {
                             error ? (
                                 <span className="help-block">
@@ -52,7 +55,7 @@ class PickFile extends React.Component {
                 </div>
                 <div className="form-group">
                     <div className="col-md-12 text-center">
-                        <button type="submit">Upload</button>
+                        <button className="btn btn-primary" type="submit" disabled={!hasFiles}>Upload</button>
                     </div>
                 </div>
             </form>

@@ -12,6 +12,6 @@ class UserMeta
     }
 
     public function expired(){
-        return microtime(true) - $this->lastSeen > 10;
+        return microtime(true) - $this->lastSeen > 60;
     }
 }
