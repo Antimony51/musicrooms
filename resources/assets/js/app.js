@@ -33,7 +33,6 @@ window.copyLink = function (link){
 }
 
 $( document ).ready(function() {
-    console.log($.fn.tooltip.Constructor.VERSION);
 
     $('.favorite-heart-root').each(function (i, v){
         var $v = $(v);

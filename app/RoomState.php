@@ -12,6 +12,7 @@ use App\User;
 class RoomState {
 
     private $id;
+    private $owner;
     public $users = [];
     public $queue = [];
     public $currentTrack = null;
@@ -61,6 +62,7 @@ class RoomState {
     public function __construct($roomId)
     {
         $this->id = $roomId;
+        $this->owner = Room::findOrFail($roomId)->owner->name;
         $this->roomDataToken = str_random(16);
     }
 
@@ -130,13 +132,16 @@ class RoomState {
         }
     }
 
-    public function removeTrack($key){
+    public function removeTrack($key, $userName){
         $queueChanged = false;
         foreach($this->queueMeta as $index => $meta){
             if($meta->key == $key){
-                unset($this->queue[$index]);
-                unset($this->queueMeta[$index]);
-                $queueChanged = true;
+                if ($meta->owner == $userName || $userName == $this->owner){
+                    unset($this->queue[$index]);
+                    unset($this->queueMeta[$index]);
+                    $queueChanged = true;
+                    break;
+                }
             }
         }
         if ($queueChanged){

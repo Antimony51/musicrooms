@@ -295,19 +295,15 @@ class RoomController extends Controller
     }
 
     public function removeTrack(Room $room, Request $request){
-        if (Auth::check()) {
-            $user = $request->user();
-            $roomState = RoomState::get($room);
+        $user = $request->user();
+        $roomState = RoomState::get($room);
 
-            $key = $request->input('key');
+        $key = $request->input('key');
 
-            if (!$roomState->removeTrack($key)){
-                abort(403);
-            }
-            $roomState->save();
-        }else{
+        if (!$roomState->removeTrack($key, $user->name)){
             abort(403);
         }
+        $roomState->save();
     }
 
     public function getStream ($uri, Request $request){
@@ -325,7 +321,8 @@ class RoomController extends Controller
                     abort(500);
                 }
                 if ($roomState->hasUser($request->user()->name) &&
-                    $roomState->currentTrack === $track->id)
+                    ($roomState->currentTrack === $track->id ||
+                        (isset($roomState->queue[0]) && $roomState->queue[0] === $track->id)))
                 {
                     return response()->file(storage_path("uploads/audio/$uri.mp3"));
                 }else{

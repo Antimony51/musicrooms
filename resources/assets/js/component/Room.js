@@ -22,6 +22,7 @@ class Room extends React.Component {
             users: [],
             queue: [],
             currentTrack: null,
+            preloadTrack: null,
             seek: 0,
             descriptionExpanded: false,
             descriptionCanExpand: app.currentRoom.description.indexOf('\n') !== -1,
@@ -58,6 +59,9 @@ class Room extends React.Component {
         if ((this.state.currentTrack ? !nextState.currentTrack : nextState.currentTrack) ||
             (this.state.currentTrack && nextState.currentTrack &&
                 this.state.currentTrack.key !== nextState.currentTrack.key) ||
+            (this.state.preloadTrack ? !nextState.preloadTrack : nextState.preloadTrack) ||
+                (this.state.preloadTrack && nextState.preloadTrack &&
+                    this.state.preloadTrack.key !== nextState.preloadTrack.key) ||
             this.state.loading !== nextState.loading ||
             this.state.queue.length !== nextState.queue.length ||
             this.state.users.length !== nextState.users.length ||
@@ -100,6 +104,7 @@ class Room extends React.Component {
 
     updateState (){
         var currentTrack = null;
+        var preloadTrack = this.state.preloadTrack;
         if (this.receivedState.currentTrack &&
             this.trackData[this.receivedState.currentTrack] &&
             this.userData[this.receivedState.currentTrackMeta.owner])
@@ -107,9 +112,20 @@ class Room extends React.Component {
             currentTrack = _.assign(
                 {},
                 this.trackData[this.receivedState.currentTrack],
-                { owner: this.userData[this.receivedState.currentTrackMeta.owner] }
+                {
+                    owner: this.userData[this.receivedState.currentTrackMeta.owner],
+                    key: this.receivedState.currentTrackMeta.key
+                }
             );
         }
+
+        if ((this.state.currentTrack ? !currentTrack : currentTrack) ||
+            (this.state.currentTrack && currentTrack &&
+                this.state.currentTrack.key !== currentTrack.key))
+        {
+            preloadTrack = null;
+        }
+
         this.setState({
             users: this.receivedState.users.map((userName) => (this.userData[userName] || userName)),
             queue: this.receivedState.queue.map((trackId, index) => {
@@ -127,6 +143,7 @@ class Room extends React.Component {
                 return track;
             }),
             currentTrack: currentTrack,
+            preloadTrack: preloadTrack,
             seek: this.receivedState.seek,
         });
     }
@@ -195,7 +212,8 @@ class Room extends React.Component {
         }
     }
 
-    sync = () => {
+    sync = (repeat, callback) => {
+        repeat = _.isNil(repeat) ? true : !!repeat;
         if (!this.doSync){
             return;
         }
@@ -211,7 +229,7 @@ class Room extends React.Component {
             })
             .fail(() => {
                 this.syncFails++;
-                if (this.syncFails == 10){
+                if (this.syncFails == 3){
                     this.props.unmount();
                     alertify.alert('Error', 'Connection lost',
                         function(){
@@ -221,8 +239,11 @@ class Room extends React.Component {
             })
             .always(() => {
                 var now = Date.now();
-                if (this.doSync){
-                    setTimeout(this.sync, Math.max(1000 - (now - startTime),0));
+                if (repeat && this.doSync){
+                    setTimeout(this.sync, Math.max(2000 - (now - startTime),0));
+                }
+                if (callback){
+                    callback();
                 }
             });
     }
@@ -346,7 +367,9 @@ class Room extends React.Component {
             transcoding: false
         }, () => {
             if (this.state.uploads.length > 0){
-                this.startUpload();
+                this.sync(false, ()=>{
+                    this.startUpload();
+                });
             }
         });
     };
@@ -359,7 +382,7 @@ class Room extends React.Component {
         this.setState({
             uploads: uploads
         }, () => {
-            if (this.state.uploads.length == 1){
+            if (this.state.uploads.length >= 1){
                 this.startUpload();
             }
         });
@@ -398,11 +421,24 @@ class Room extends React.Component {
         this.checkDescriptionOverflow()
     }
 
+    handleEnded = () => {
+        this.sync(false);
+    }
+
+    handleProgress = (progress) => {
+        if (this.state.queue.length && !this.state.preloadTrack && progress > 0.9){
+            this.setState({
+                preloadTrack: this.state.queue[0]
+            });
+        }
+    }
+
     render() {
         const {
             loading, queue, users, currentTrack, seek,
             descriptionExpanded, descriptionCanExpand,
-            uploadProgress, uploads, transcoding
+            uploadProgress, uploads, transcoding,
+            preloadTrack
         } = this.state;
 
         const isOwner = app.currentRoom.owner.name == app.currentUser.name;
@@ -488,7 +524,10 @@ class Room extends React.Component {
                     <div className="row">
                         <div className="col-sm-10 col-sm-offset-1">
                             {
-                                <Player track={currentTrack} seek={seek} />
+                                <Player track={currentTrack} seek={seek}
+                                    onEnded={this.handleEnded}
+                                    onProgress={this.handleProgress}
+                                    preloadTrack={preloadTrack} />
                             }
                         </div>
                     </div>

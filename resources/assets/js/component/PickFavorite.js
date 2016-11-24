@@ -47,7 +47,6 @@ class PickFavorite extends React.Component {
     }
 
     gotoPage (page) {
-        console.log('gotoPage');
         if (this.resultCache[page]){
             this.setState({
                 results: this.resultCache[page]

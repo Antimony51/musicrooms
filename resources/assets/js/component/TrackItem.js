@@ -13,7 +13,9 @@ function TrackItem (props) {
     return (
         <div className="dyn-block-row">
             {
-                app.currentUser && track.owner.name == app.currentUser.name && (
+                (track.owner.name == app.currentUser.name ||
+                    app.currentRoom.owner.name == app.currentUser.name) && 
+                (
                     <div className="icon-button track-remove rigid-right" onClick={props.onRequestRemove}><i className="fa fa-trash"></i></div>
                 )
             }
