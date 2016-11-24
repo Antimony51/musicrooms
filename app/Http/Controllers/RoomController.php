@@ -248,6 +248,8 @@ class RoomController extends Controller
                             }
                         }
                     }
+                }else if ($type == 'file' && !is_null($uri)){
+                    $newTrack = null;
                 }else{
                     abort(400, "Invalid type");
                 }
@@ -257,14 +259,20 @@ class RoomController extends Controller
 
                 $isNew = false;
 
-                if (!is_null($track)){
-                    // keep metadata fresh
-                    $track->title = $newTrack->title;
-                    $track->artist = $newTrack->artist;
-                    $track->album = $newTrack->album;
+                if (!is_null($newTrack)){
+                    if (!is_null($track)){
+                        // keep metadata fresh
+                        $track->title = $newTrack->title;
+                        $track->artist = $newTrack->artist;
+                        $track->album = $newTrack->album;
+                    }else{
+                        $track = $newTrack;
+                        $isNew = true;
+                    }
                 }else{
-                    $track = $newTrack;
-                    $isNew = true;
+                    if (is_null($track)){
+                        abort(404);
+                    }
                 }
 
                 $track->save();
