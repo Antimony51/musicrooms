@@ -47,7 +47,10 @@ class Volume extends React.Component {
     }
 
     handleSeekBarChange = (value) => {
-        this.setState({volume: value});
+        this.setState({
+            mute: false,
+            volume: value
+        });
         if (_.isFunction(this.props.onChange)){
             this.props.onChange(value, this.state.mute);
         }
@@ -96,7 +99,7 @@ class Volume extends React.Component {
                         left: 0,
                     }}>
                     <SeekBar value={mute ? 0 : volume}
-                        locked={mute || !expanded}
+                        locked={!expanded}
                         immediate="true"
                         vertical="true"
                         style={{ height: '60px' }}
