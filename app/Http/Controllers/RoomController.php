@@ -235,7 +235,7 @@ class RoomController extends Controller
 
                 $newTrack->type = $type;
                 $newTrack->uri = $uri;
-                $newTrack->link = "/stream/$uri";
+                $newTrack->link = "/mp3/$uri.mp3";
                 $newTrack->duration = $duration;
 
                 if ($tags){
@@ -285,6 +285,7 @@ class RoomController extends Controller
             $track->save();
 
             if ($type == 'file' && $isNew){
+                set_time_limit(300);
                 $audio = $ffmpeg->open($file->path());
                 $outputFormat = new Mp3();
                 $audio->save($outputFormat, storage_path("uploads/audio/$uri.mp3"));
