@@ -47,11 +47,11 @@ class User extends Authenticatable
     }
 
     public function favoriteTracks(){
-        return $this->belongsToMany('App\Track', 'favorites');
+        return $this->belongsToMany('App\Track', 'favorites')->withTimestamps();
     }
 
     public function savedRooms(){
-        return $this->belongsToMany('App\Room', 'saved_rooms');
+        return $this->belongsToMany('App\Room', 'saved_rooms')->withTimestamps();
     }
 
     public function iconSmall(){

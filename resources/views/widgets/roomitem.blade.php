@@ -7,7 +7,7 @@
         <a href="{{ route('room', ['room' => $room]) }}">
             {{ $room->title }}
             @if ($room->visibility == 'private')
-                <strong class="color-red">(Private)</strong>
+                <strong class="text-danger">(Private)</strong>
             @endif
         </a>
         <span class="pull-right text-muted">

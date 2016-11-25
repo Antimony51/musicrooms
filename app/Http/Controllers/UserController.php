@@ -21,7 +21,7 @@ class UserController extends Controller
 
     public function showUserList()
     {
-        $users = User::paginate(20);
+        $users = User::orderBy('created_at', 'desc')->paginate(10);
         return view('user.list', compact('users'));
     }
 
@@ -53,21 +53,24 @@ class UserController extends Controller
 
     public function showFavorites(User $user, Request $request){
         $profile = $user->profile;
-        $favorites = $user->favoriteTracks;
+        $favorites = $user->favoriteTracks()->orderBy('favorites.created_at', 'desc')->get();
         $mutualFavorites = null;
         $activeTab = 'favorites';
         $ownProfile = $user->is($request->user());
         if ($ownProfile){
             $mutualFavorites = $favorites;
         }elseif (Auth::check()){
-            $mutualFavorites = $favorites->intersect(Auth::user()->favoriteTracks);
+            $mutualFavorites = $favorites->intersect($request->user()->favoriteTracks);
         }
         return view('user.favorites', compact('user', 'profile', 'favorites', 'mutualFavorites', 'activeTab', 'ownProfile'));
     }
 
     public function showRooms(User $user, Request $request){
         $profile = $user->profile;
-        $rooms = Room::whereOwnerId($user->id)->whereVisibility('public')->get();
+        $rooms = $user->rooms()->whereVisibility('public')
+            ->orderBy('user_count', 'desc')
+            ->orderBy('created_at', 'desc')
+            ->get();
         $activeTab = 'rooms';
         $ownProfile = $user->is($request->user());
         return view('user.rooms', compact('user', 'profile', 'ownProfile', 'activeTab', 'rooms'));
@@ -78,57 +81,46 @@ class UserController extends Controller
             $profile = $user->profile;
             return view('user.edit', compact('user', 'profile'));
         }else{
-            abort(403);
+            abort(403, "This profile isn't yours.");
         }
     }
 
-    public function addFavorite(User $user, $id, Request $request){
-        if ($user->is($request->user())) {
-            if (is_null($user->favoriteTracks()->whereTrackId($id)->first())){
-                $user->favoriteTracks()->attach($id);
-            }else{
-                abort(400);
-            }
+    public function addFavorite($id, Request $request){
+        $user = $request->user();
+        if (is_null($user->favoriteTracks()->whereTrackId($id)->first())){
+            $user->favoriteTracks()->attach($id);
         }else{
-            abort(403);
+            return response("This track is already in your favorites.", 400);
         }
     }
 
-    public function removeFavorite(User $user, $id, Request $request){
-        if ($user->is($request->user())) {
-            $user->favoriteTracks()->detach($id);
-        } else {
-            abort(403);
-        }
+    public function removeFavorite($id, Request $request){
+        $user = $request->user();
+        $user->favoriteTracks()->detach($id);
     }
 
     public function searchFavorites(User $user, Request $request){
         $queryString = '%' . $request->input('query', '') . '%';
         $perPage = $request->input('perPage', 10);
         return ($user->favoriteTracks()->where(function ($query) use ($queryString){
-            $query->where('title', 'like', $queryString)
-                ->orWhere('artist', 'like', $queryString);
-        })->paginate($perPage));
+                $query->where('title', 'like', $queryString)
+                    ->orWhere('artist', 'like', $queryString);
+            })->orderBy('favorites.created_at', 'desc')
+                ->paginate($perPage));
     }
 
-    public function addSavedRoom(User $user, Room $room, Request $request){
-        if ($user->is($request->user())) {
-            if (is_null($user->savedRooms()->whereRoomId($room->id)->first())){
-                $user->savedRooms()->attach($room);
-            }else{
-                abort(400);
-            }
+    public function addSavedRoom(Room $room, Request $request){
+        $user = $request->user();
+        if (is_null($user->savedRooms()->whereRoomId($room->id)->first())){
+            $user->savedRooms()->attach($room);
         }else{
-            abort(403);
+            return response("This room is already in your saved rooms.", 400);
         }
     }
 
-    public function removeSavedRoom(User $user, Room $room, Request $request){
-        if ($user->is($request->user())) {
-            $user->savedRooms()->detach($room);
-        } else {
-            abort(403);
-        }
+    public function removeSavedRoom(Room $room, Request $request){
+        $user = $request->user();
+        $user->savedRooms()->detach($room);
     }
 
     public function updateProfile(User $user, Request $request)
@@ -156,7 +148,7 @@ class UserController extends Controller
             if ($request->hasFile('icon')){
                 $icon = $request->file('icon');
                 if (!$icon->isValid()){
-                    abort(400, "Error while uploading");
+                    return reponse("Error while uploading", 400);
                 }
 
                 $im = new Imagick($icon->getPathname());
@@ -178,7 +170,7 @@ class UserController extends Controller
 
             return redirect(route('user', ['user' => $user]));
         }else{
-            abort(403);
+            abort(403, "This profile isn't yours.");
         }
     }
 
@@ -202,7 +194,7 @@ class UserController extends Controller
             $request->user()->befriend($user);
             return $user;
         }else{
-            abort(403);
+            return response("You can't befriend yourself.", 403);
         }
     }
 
@@ -211,7 +203,7 @@ class UserController extends Controller
             $request->user()->unfriend($user);
             return $user;
         }else{
-            abort(403);
+            return response("You can't unfriend yourself.", 403);
         }
     }
 
@@ -220,7 +212,7 @@ class UserController extends Controller
             $request->user()->acceptFriendRequest($user);
             return $user;
         }else{
-            abort(403);
+            return response("You can't accept yourself.", 403);
         }
     }
 
@@ -229,7 +221,7 @@ class UserController extends Controller
             $request->user()->denyFriendRequest($user);
             return $user;
         }else{
-            abort(403);
+            return response("You can't deny yourself.", 403);
         }
     }
 }

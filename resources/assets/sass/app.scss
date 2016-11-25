@@ -10,6 +10,7 @@ $palette-red: #ff0000;
 $palette-heartred: #ff2c6d;
 $palette-green: #2fd127;
 $palette-blue: #475bc0;
+$palette-extra-muted: #ccc;
 
 $palette-youtube: #e62117;
 $palette-soundcloud: #f50;
@@ -41,6 +42,10 @@ $user-icon-large-size: 200px;
   color: $palette-soundcloud;
 }
 
+.text-extra-muted {
+  color: $palette-extra-muted;
+}
+
 .hovering {
   transform-origin: center;
   transform: scale(1.2);
@@ -50,6 +55,18 @@ $user-icon-large-size: 200px;
   border-top: none;
   border-top-left-radius: 0;
   border-top-right-radius: 0;
+}
+
+.favorite-heart-root {
+  @extend .fa;
+  @extend .fa-heart-o;
+  @extend .text-extra-muted;
+}
+
+.copy-link-root {
+  @extend .fa;
+  @extend .fa-link;
+  @extend .text-extra-muted;
 }
 
 .favorite-heart:not(.spinner) {

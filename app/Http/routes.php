@@ -33,12 +33,13 @@ Route::group(['middleware' => 'auth'], function(){
 
     Route::get('track/{track}/data', function(App\Track $track) {return $track;});
 
+    Route::post('favorites/add/{id}', 'UserController@addFavorite');
+    Route::post('favorites/remove/{id}', 'UserController@removeFavorite');
+    Route::post('savedrooms/add/{room}', 'UserController@addSavedRoom');
+    Route::post('savedrooms/remove/{room}', 'UserController@removeSavedRoom');
+
     Route::group(['prefix' => 'user/{user}'], function(){
-        Route::post('favorites/add/{id}', 'UserController@addFavorite');
-        Route::post('favorites/remove/{id}', 'UserController@removeFavorite');
         Route::get('favorites/search', 'UserController@searchFavorites');
-        Route::post('savedrooms/add/{room}', 'UserController@addSavedRoom');
-        Route::post('savedrooms/remove/{room}', 'UserController@removeSavedRoom');
         Route::post('addfriend', 'UserController@addFriend');
         Route::post('removefriend', 'UserController@removeFriend');
         Route::post('cancelrequest', 'UserController@removeFriend');
@@ -50,6 +51,6 @@ Route::group(['middleware' => 'auth'], function(){
 
     Route::get('rooms/saved', 'RoomController@showSavedRooms')->name('savedRooms');
     Route::get('rooms/mine', 'RoomController@showMyRooms')->name('myRooms');
-    Route::get('rooms/create', 'RoomController@showCreateRoom');
+    Route::get('rooms/create', 'RoomController@showCreateRoom')->name('showCreateRoom');
     Route::post('rooms/create', 'RoomController@createRoom')->name('createRoom');
 });

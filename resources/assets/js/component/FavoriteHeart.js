@@ -50,7 +50,7 @@ class FavoriteHeart extends React.Component {
             });
             if (checked){
                 $.ajax({
-                    url: '/user/' + app.currentUser.name + '/favorites/remove/' + trackId,
+                    url: '/favorites/remove/' + trackId,
                     method: 'POST'
                 })
                     .done(() => {
@@ -71,7 +71,7 @@ class FavoriteHeart extends React.Component {
                     });
             }else{
                 $.ajax({
-                    url: '/user/' + app.currentUser.name + '/favorites/add/' + trackId,
+                    url: '/favorites/add/' + trackId,
                     method: 'POST',
                 })
                     .done(() => {

@@ -30,7 +30,7 @@ class SaveRoom extends React.Component {
             });
             if (checked){
                 $.ajax({
-                    url: '/user/' + app.currentUser.name + '/savedrooms/remove/' + roomName,
+                    url: '/savedrooms/remove/' + roomName,
                     method: 'POST'
                 })
                     .done(() => {
@@ -48,7 +48,7 @@ class SaveRoom extends React.Component {
                     });
             }else{
                 $.ajax({
-                    url: '/user/' + app.currentUser.name + '/savedrooms/add/' + roomName,
+                    url: '/savedrooms/add/' + roomName,
                     method: 'POST',
                 })
                     .done(() => {

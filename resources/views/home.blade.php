@@ -3,17 +3,16 @@
 @section('content')
 <div class="container">
     <div class="row">
-        <div class="col-sm-6">
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    Create a room
-                </div>
-                <div class="panel-body">
-
-                </div>
+        <div class="col-sm-12">
+            <div class="jumbotron">
+                <h1>Music Rooms</h1>
+                <p>Create rooms and fill them with music and friends.</p>
+                <p><a href="{{ route('showCreateRoom') }}" class="btn btn-primary">Create a Room</a></p>
             </div>
         </div>
-        <div class="col-sm-6">
+    </div>
+    <div class="row">
+        <div class="col-sm-12">
             <div class="panel panel-default">
                 <div class="panel-heading">
                     Join a room

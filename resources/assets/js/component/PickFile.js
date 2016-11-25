@@ -1,5 +1,6 @@
 import React from 'react';
 import Track from '../class/Track';
+import FileInput from './FileInput';
 
 class PickFile extends React.Component {
 
@@ -43,7 +44,7 @@ class PickFile extends React.Component {
             <form className="form-horizontal" onSubmit={this.handleSubmit}>
                 <div className={ 'form-group' + (error ? ' has-error' : '') }>
                     <div className="col-md-12">
-                        <input type="file" className="form-control" name="file" onChange={this.handleChange} multiple />
+                        <FileInput name="file" onChange={this.handleChange} multiple />
                         {
                             error ? (
                                 <span className="help-block">

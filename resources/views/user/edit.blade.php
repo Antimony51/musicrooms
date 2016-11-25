@@ -28,7 +28,7 @@
                                 <label for="icon" class="col-sm-4 control-label">Profile Picture</label>
 
                                 <div class="col-sm-6">
-                                    <input id="icon" type="file" class="form-control" name="icon">
+                                    <input class="file-input" type="hidden" id="icon" name="icon">
 
                                     @if ($errors->has('icon'))
                                         <span class="help-block">

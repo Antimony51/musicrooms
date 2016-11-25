@@ -12,6 +12,7 @@ import ReactDOM from 'react-dom';
 import ManageFriend from './component/ManageFriend';
 import FavoriteHeart from './component/FavoriteHeart';
 import CopyLink from './component/CopyLink';
+import FileInput from './component/FileInput';
 
 $.ajaxSetup({
     data: {
@@ -34,24 +35,33 @@ window.copyLink = function (link){
 
 $( document ).ready(function() {
 
+    $('input.file-input').each(function (i, v){
+        var div = document.createElement('div');
+        $(v).replaceWith(div);
+        ReactDOM.render(<FileInput id={v.id} name={v.name} />, div);
+    });
+
     $('.favorite-heart-root').each(function (i, v){
-        var $v = $(v);
-        ReactDOM.render(<FavoriteHeart trackId={$v.attr('data-track-id')} checked={$v.attr('data-checked')} />, v);
+        var span = document.createElement('span');
+        var $v = $(v).replaceWith(span);
+        ReactDOM.render(<FavoriteHeart trackId={$v.attr('data-track-id')} checked={$v.attr('data-checked')} />, span);
     });
 
     $('.copy-link-root').each(function (i, v){
-        var $v = $(v);
-        ReactDOM.render(<CopyLink link={$v.attr('data-link')} />, v);
+        var span = document.createElement('span');
+        var $v = $(v).replaceWith(span);
+        ReactDOM.render(<CopyLink link={$v.attr('data-link')} />, span);
     });
 
     $('.manage-friend-root').each(function(i, v){
-        var $v = $(v);
+        var span = document.createElement('span');
+        var $v = $(v).replaceWith(span);
         ReactDOM.render(
             <ManageFriend
                 name={$v.attr('data-name')}
                 displayName={$v.attr('data-display-name')}
                 friendStatus={$v.attr('data-friend-status')}
                 compact={$v.attr('data-compact')}
-            />, v);
+            />, span);
     });
 });
