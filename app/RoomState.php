@@ -104,6 +104,12 @@ class RoomState {
         }
     }
 
+    public function clearUsers(){
+        $this->users = [];
+        $this->userMeta = [];
+        $this->updateUserCount();
+    }
+
     public function userSeen($userName){
         if ($this->hasUser($userName)){
             $this->userMeta[$userName]->seen();

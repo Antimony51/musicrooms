@@ -81,8 +81,12 @@ class AddTrackButton extends React.Component {
                 uri: track.uri
             }
         })
-            .fail(() => {
-                alertify.alert('Error', 'Failed to add track.');
+            .fail((xhr) => {
+                if (xhr.responseText){
+                    alertify.alert('Failed to add track', xhr.responseText);
+                }else{
+                    alertify.alert('Error', 'Failed to add track');
+                }
             });
     };
 

@@ -14,7 +14,7 @@
                                 <label for="cosmetic-name" class="col-sm-4 control-label">Cosmetic Name</label>
 
                                 <div class="col-sm-6">
-                                    <input id="cosmetic-name" type="text" class="form-control" name="cosmetic-name" value="{{ old('cosmetic-name') ?: $profile->cosmetic_name }}">
+                                    <input id="cosmetic-name" type="text" class="form-control" name="cosmetic-name" value="{{ old('cosmetic-name', $profile->cosmetic_name) }}">
 
                                     @if ($errors->has('cosmetic-name'))
                                         <span class="help-block">
@@ -28,7 +28,7 @@
                                 <label for="icon" class="col-sm-4 control-label">Profile Picture</label>
 
                                 <div class="col-sm-6">
-                                    <input class="file-input" type="hidden" id="icon" name="icon">
+                                    <input class="file-input" type="file" id="icon" name="icon">
 
                                     @if ($errors->has('icon'))
                                         <span class="help-block">
@@ -42,7 +42,7 @@
                                 <label for="bio" class="col-sm-4 control-label">About Me</label>
 
                                 <div class="col-sm-6">
-                                    <textarea id="bio" class="form-control" name="bio">{{ old('bio') ?: $profile->bio }}</textarea>
+                                    <textarea id="bio" class="form-control" name="bio">{{ old('bio', $profile->bio) }}</textarea>
 
                                     @if ($errors->has('bio'))
                                         <span class="help-block">

@@ -1,3 +1,4 @@
 *
 !.gitignore
-!uploads/
+!audio/
+!img/

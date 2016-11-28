@@ -2,7 +2,7 @@
 Route::auth();
 
 Route::get('home', 'HomeController@index');
-Route::get('', 'HomeController@index');
+Route::get('', 'HomeController@index')->name('home');
 
 Route::group(['middleware' => 'auth'], function(){
     Route::group(['prefix' => 'user/{user}'], function(){
@@ -18,6 +18,9 @@ Route::group(['middleware' => 'auth'], function(){
     Route::group(['prefix' => 'room/{room}'], function(){
         Route::get('', 'RoomController@show')->name('room');
         Route::get('syncme', 'RoomController@syncMe')->name('syncMe');
+        Route::get('settings', 'RoomController@showRoomSettings')->name('roomSettings');
+        Route::post('settings', 'RoomController@updateRoom')->name('updateRoom');
+        Route::post('delete', 'RoomController@deleteRoom')->name('deleteRoom');
         Route::post('join', 'RoomController@join')->name('joinRoom');
         Route::post('leave', 'RoomController@leave')->name('leaveRoom');
         Route::post('addtrack', 'RoomController@addTrack');

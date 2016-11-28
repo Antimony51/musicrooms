@@ -23,6 +23,8 @@ class CreateRoomsTable extends Migration
             $table->enum('visibility', ['public', 'private']);
             $table->string('title', 24);
             $table->text('description')->nullable();
+            $table->integer('user_limit')->default(0);
+            $table->integer('user_queue_limit')->default(5);
             $table->integer('user_count')->default(0);
             $table->timestamps();
         });

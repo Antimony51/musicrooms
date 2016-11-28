@@ -4,6 +4,7 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 use Auth;
+use Storage;
 
 class Track extends Model
 {
@@ -29,5 +30,9 @@ class Track extends Model
 
     public function getIsFavedAttribute(){
         return $this->isFaved();
+    }
+
+    public function getLinkAttribute($value){
+        return Storage::cloud()->url($value);
     }
 }

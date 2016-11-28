@@ -30,7 +30,7 @@
                             <label for="name" class="col-sm-4 control-label">URL</label>
 
                             <div class="col-sm-6">
-                                <input id="name" type="text" class="form-control" value="{{ old('name') }}" autocomplete="off">
+                                <input id="name" type="text" class="form-control" value="{{ old('name', $suggestedName) }}" autocomplete="off">
                                 <input type="hidden" name="name" value="{{ old('name') }}">
                                 <span class="help-block text-muted hidden url-preview">{{ url('/room') . '/'}}<strong class="value"></strong></span>
 
@@ -85,48 +85,5 @@
 @endsection
 
 @push('scripts_after')
-    <script>
-        (function(){
-            function showOrHideNameField(visibility){
-                $nameGroup = $('#name').closest('.form-group');
-                if (visibility == 'public'){
-                    $nameGroup.show();
-                }else if (visibility == 'private'){
-                    $nameGroup.hide();
-                }
-            }
-
-            showOrHideNameField($('#visibility').val());
-
-            $('#visibility').on('change', function(ev){
-                showOrHideNameField(ev.target.value);
-            });
-
-            var $name = $('#name');
-            var $urlPreview = $('.url-preview');
-            var $urlPreviewValue = $urlPreview.children('.value');
-            var $hiddenName = $('input[name=name]');
-
-            var lastVal = '';
-
-            handleNameChanged();
-
-            function handleNameChanged (){
-                if ($name.val() != lastVal){
-                    var cleanVal = $name.val().replace(/\s+/g, '-').replace(/[^a-z0-9_.-]+/ig, '');
-                    $hiddenName.val(cleanVal);
-                    $urlPreview.toggleClass('hidden', cleanVal == '');
-                    $urlPreviewValue.text(cleanVal);
-                    lastVal = cleanVal;
-                }
-            }
-
-            $name.on('keyup', handleNameChanged);
-            $name.on('change', function(){
-                handleNameChanged();
-                lastVal = $hiddenName.val();
-                $name.val($hiddenName.val());
-            });
-        })();
-    </script>
+    <script src="{{ url('/js/url-preview.js') }}"></script>
 @endpush

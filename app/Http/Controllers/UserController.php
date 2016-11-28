@@ -154,14 +154,14 @@ class UserController extends Controller
                 $im = new Imagick($icon->getPathname());
                 $im->setImageFormat('png');
                 $im->thumbnailImage(200, 200, true, true);
-                $largePath = 'userimg/' . $user->name . '_large.png';
-                Storage::disk('public')->put($largePath, $im->getImageBlob());
+                $largePath = 'uploads/img/' . $user->name . '_large.png';
+                Storage::cloud()->put($largePath, $im->getImageBlob(), 'public');
                 $im->thumbnailImage(48, 48, true, true);
-                $smallPath = 'userimg/' . $user->name . '_small.png';
-                Storage::disk('public')->put($smallPath, $im->getImageBlob());
+                $smallPath = 'uploads/img/' . $user->name . '_small.png';
+                Storage::cloud()->put($smallPath, $im->getImageBlob(), 'public');
 
-                $profile->icon_large = '/' . $largePath;
-                $profile->icon_small = '/' . $smallPath;
+                $profile->icon_large = $largePath;
+                $profile->icon_small = $smallPath;
             }
 
             $profile->bio = $data['bio'];

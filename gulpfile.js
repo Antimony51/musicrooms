@@ -20,7 +20,8 @@ elixir.config.js.browserify.transformers
 elixir(function(mix) {
     mix.sass('app.scss')
         .browserify('app.js')
-        .browserify('room.js');
+        .browserify('room.js')
+        .browserify('url-preview.js');
     mix.copy('node_modules/bootstrap-sass/assets/fonts/bootstrap/','public/fonts/bootstrap');
     mix.copy('node_modules/font-awesome/fonts/', 'public/fonts/font-awesome');
 });

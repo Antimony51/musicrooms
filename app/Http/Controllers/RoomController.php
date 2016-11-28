@@ -17,6 +17,8 @@ use Validator;
 use Illuminate\Support\Facades\Input;
 use FFMpeg\FFMpeg;
 use FFMpeg\Format\Audio\Mp3;
+use FFMpeg\Exception\RuntimeException;
+use Storage;
 
 class RoomController extends Controller
 {
@@ -25,8 +27,16 @@ class RoomController extends Controller
         return view('room.main', compact('room'));
     }
 
-    public function showCreateRoom(Request $request){
-        return view('room.create');
+    public function showCreateRoom(){
+        do{
+            $suggestedName = str_random(16);
+        }while(Room::whereName($suggestedName)->count() > 0);
+
+        return view('room.create', compact('suggestedName'));
+    }
+
+    public function showRoomSettings(Room $room){
+        return view('room.settings', compact('room'));
     }
 
     public function createRoom(Request $request){
@@ -40,7 +50,18 @@ class RoomController extends Controller
                 return $item;
             }
         })->toArray();
-        $validator = $this->validator($data);
+        $validator = Validator::make($data, [
+            'visibility' => 'required|in:public,private',
+            'name' => 'required|username_chars|max:24|unique:rooms,name',
+            'title' => 'required|max:24',
+            'description' => 'max:1000',
+        ]);
+        $validator->setAttributeNames([
+            'visibility' => 'visibility',
+            'name' => 'URL',
+            'title' => 'title',
+            'description' => 'description'
+        ]);
 
         if ($validator->fails()) {
             $this->throwValidationException(
@@ -49,11 +70,7 @@ class RoomController extends Controller
         }
 
         $room = new Room();
-        if ($data['visibility'] == 'public'){
-            $room->name = $data['name'];
-        }else{
-            $room->name = str_random(16);
-        }
+        $room->name = $data['name'];
         $room->visibility = $data['visibility'];
         $room->title = $data['title'];
         $room->description = $data['description'];
@@ -63,21 +80,86 @@ class RoomController extends Controller
         return redirect(route('room', ['room' => $room]));
     }
 
-    protected function validator(array $data)
-    {
-        $validator = Validator::make($data, [
-            'visibility' => 'required|in:public,private',
-            'name' => 'required_if:visibility,public|username_chars|max:24|unique:rooms,name',
-            'title' => 'required|max:24',
-            'description' => 'max:1000',
-        ]);
-        $validator->setAttributeNames([
-            'visibility' => '',
-            'name' => 'URL',
-            'title' => 'title',
-            'description' => 'description'
-        ]);
-        return $validator;
+    public function updateRoom(Room $room, Request $request){
+        if ($room->owner.is($request->user())){
+            $data = collect($request->all())
+                ->map(function($item, $key){
+                    switch($key){
+                        case 'title':
+                        case 'description':
+                        case 'owner':
+                            return trim($item);
+                        default:
+                            return $item;
+                    }
+                })->filter(function($item, $key) use ($room){
+                    switch($key){
+                        case 'visibility':
+                        case 'name':
+                        case 'title':
+                        case 'description':
+                        case 'user_limit':
+                        case 'user_queue_limit':
+                            return $room->{$key} != $item;
+                        case 'owner':
+                            return $room->owner->name != $item;
+                    }
+                })->toArray();
+
+            $validator = Validator::make($data, [
+                'visibility' => 'in:public,private',
+                'name' => 'username_chars|max:24|unique:rooms,name',
+                'title' => 'max:24',
+                'description' => 'max:1000',
+                'user_limit' => 'integer|min:0',
+                'user_queue_limit' => 'integer|min:0',
+                'owner' => 'exists:users,name'
+            ]);
+            $validator->setAttributeNames([
+                'visibility' => 'visibility',
+                'name' => 'URL',
+                'title' => 'title',
+                'description' => 'description',
+                'user_limit' => 'user limit',
+                'user_queue_limit' => 'queued tracks per user',
+                'owner' => 'owner'
+            ]);
+
+            if ($validator->fails()) {
+                $this->throwValidationException(
+                    $request, $validator
+                );
+            }
+
+            if (isset($data['name'])) $room->name = $data['name'];
+            if (isset($data['visibility'])) $room->visibility = $data['visibility'];
+            if (isset($data['title'])) $room->title = $data['title'];
+            if (isset($data['description'])) $room->description = $data['description'];
+            if (isset($data['user_limit'])) $room->user_limit = $data['user_limit'];
+            if (isset($data['user_queue_limit'])) $room->user_queue_limit = $data['user_queue_limit'];
+            if (isset($data['owner'])) $room->owner = User::whereName($data['owner'])->first();
+            $room->save();
+
+            if (isset($data['name'])){
+                $roomState = RoomState::get($room);
+                $roomState->clearUsers();
+                $roomState->save();
+            }
+
+            return redirect(route('room', ['room' => $room]));
+        }else{
+            abort(403, "You are not the room owner.");
+        }
+    }
+
+    public function deleteRoom(Room $room, Request $request){
+        if ($room->owner.is($request->user())){
+            $room->delete();
+
+            return redirect(route('home'));
+        }else{
+            abort(403, "You are not the room owner.");
+        }
     }
 
     public function showPublicRooms()
@@ -132,8 +214,11 @@ class RoomController extends Controller
 
     public function join (Room $room, Request $request){
         $roomState = RoomState::get($room);
+        if ($room->user_limit > 0 && $roomState->userCount >= $room->user_limit){
+            return response('This room is full.', 403);
+        }
         if (!$roomState->userJoin($request->user()->name)){
-            return response('User already in room', 403);
+            return response('You are already in this room.', 403);
         }
         $roomState->save();
         return json_encode($roomState);
@@ -150,6 +235,19 @@ class RoomController extends Controller
     public function addTrack (Room $room, Request $request){
         $user = $request->user();
         $roomState = RoomState::get($room);
+
+        if ($room->user_queue_limit > 0){
+            $userQueued = 0;
+            foreach ($roomState->queueMeta as $trackMeta) {
+                if ($trackMeta->owner == $user->name){
+                    $userQueued++;
+                }
+            }
+            if ($userQueued >= $room->user_queue_limit){
+                return response('You cannot have more than '.$room->user_queue_limit.' tracks in the queue.', 403);
+            }
+        }
+
         if ($roomState->hasUser($user->name)){
             $type = $request->input('type');
             $uri = $request->input('uri');
@@ -235,17 +333,21 @@ class RoomController extends Controller
 
                 $newTrack->type = $type;
                 $newTrack->uri = $uri;
-                $newTrack->link = "/mp3/$uri.mp3";
+                $fileLink = "uploads/audio/$uri.mp3";
+                $newTrack->link = $fileLink;
                 $newTrack->duration = $duration;
 
                 if ($tags){
                     foreach ($tags as $key => $value) {
-                        if (preg_match('/^title$/i', $key)){
-                            $newTrack->title = $tags[$key];
-                        }else if (preg_match('/^artist$/i', $key)){
-                            $newTrack->artist = $tags[$key];
-                        }else if (preg_match('/^album$/i', $key)){
-                            $newTrack->album = $tags[$key];
+                        $tag = !empty($tags[$key]) ? explode(';', $tags[$key])[0] : null;
+                        if (!is_null($tag)){
+                            if (preg_match('/^title$/i', $key)){
+                                $newTrack->title = $tag;
+                            }else if (preg_match('/^artist$/i', $key)){
+                                $newTrack->artist = $tag;
+                            }else if (preg_match('/^album$/i', $key)){
+                                $newTrack->album = $tag;
+                            }
                         }
                     }
                 }
@@ -265,10 +367,10 @@ class RoomController extends Controller
                     // keep metadata fresh
                     $track->title = $newTrack->title;
                     $track->artist = $newTrack->artist;
-
                     $track->album = $newTrack->album;
+                    $track->link = $newTrack->link;
 
-                    if ($type == 'file' && !file_exists(storage_path("uploads/audio/$uri.mp3"))){
+                    if ($type == 'file' && !Storage::cloud()->exists($track->link)){
                         Log::warning("Missing track file $uri.mp3, will transcode again.");
                         $isNew = true;
                     }
@@ -288,7 +390,19 @@ class RoomController extends Controller
                 set_time_limit(300);
                 $audio = $ffmpeg->open($file->path());
                 $outputFormat = new Mp3();
-                $audio->save($outputFormat, storage_path("uploads/audio/$uri.mp3"));
+                $tmpFile = "audio/$uri.mp3";
+                $tmpFolder = config('filesystems.disks.temp.root')."/audio";
+                if (!file_exists($tmpFolder)){
+                    mkdir($tmpFolder, 0777, true);
+                }
+                try{
+                    $audio->save($outputFormat, config('filesystems.disks.temp.root')."/$tmpFile");
+                }catch(RuntimeException $e){
+                    return response($e->getMessage(), 500);
+                }
+
+                Storage::cloud()->put($fileLink, Storage::disk('temp')->get($tmpFile), 'public');
+                Storage::disk('temp')->delete($tmpFile);
             }
 
             $roomState->addTrack($track->id, $track->duration, $user->name);
@@ -309,40 +423,6 @@ class RoomController extends Controller
             return response("You don't have permission to remove this track.",403);
         }
         $roomState->save();
-    }
-
-    public function getStream ($uri, Request $request){
-        $track = Track::whereType('file')
-            ->whereUri($uri)->first();
-        if (is_null($track)){
-            return response("Track not found", 404);
-        }
-        if ($request->has('room')){
-            $roomName = $request->input('room');
-            $room = Room::whereName($roomName)->first();
-            if ($room){
-                $roomState = RoomState::get($room);
-                if (!$roomState){
-                    return response("Couldn't get room state.", 500);
-                }
-                if ($roomState->hasUser($request->user()->name) &&
-                    ($roomState->currentTrack === $track->id ||
-                        (isset($roomState->queue[0]) && $roomState->queue[0] === $track->id)))
-                {
-                    $trackPath = storage_path("uploads/audio/$uri.mp3");
-                    if (!file_exists($trackPath)){
-                        return response("Couldn't load track data.", 500);
-                    }
-                    return response()->file($trackPath);
-                }else{
-                    return response("Track is not currently playing.", 403);
-                }
-            }else{
-                return response("Invalid room.", 400);
-            }
-        }else{
-            return response("Missing room parameter.", 400);
-        }
     }
 
     public function getData (Room $room, Request $request){

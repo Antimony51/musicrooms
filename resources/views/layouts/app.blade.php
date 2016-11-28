@@ -30,6 +30,8 @@
     </script>
 
     @stack('scripts_before')
+    
+    <script src="{{ asset('js/app.js') }}"></script>
 </head>
 <body id="app-layout">
     <div id="app-content">
@@ -89,7 +91,6 @@
         </div>
     </div>
 
-    <script src="{{ asset('js/app.js') }}"></script>
     @stack('scripts_after')
 </body>
 </html>

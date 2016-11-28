@@ -306,18 +306,21 @@ class Room extends React.Component {
         data.append('_token', app.csrf_token);
         data.append('file', this.state.uploads[0]);
 
+        var filename = this.state.uploads[0].name;
         var xhr = new XMLHttpRequest();
 
         xhr.upload.addEventListener('progress', this.handleUploadProgress);
-        xhr.addEventListener('error', this.handleUploadFailed);
+        xhr.addEventListener('error', () => {
+            this.handleUploadFailed(filename, xhr);
+        });
         xhr.addEventListener('readystatechange', () => {
             if (xhr.readyState == 4){
                 if (xhr.status >= 400){
-                    this.handleUploadFailed();
+                    this.handleUploadFailed(filename, xhr);
                 }else{
-                    this.handleUploadSuccess();
+                    this.handleUploadSuccess(filename, xhr);
                 }
-                this.handleUploadComplete();
+                this.handleUploadComplete(filename, xhr);
             }
         });
 
@@ -349,14 +352,14 @@ class Room extends React.Component {
         }
     };
 
-    handleUploadFailed = () => {
-        alertify.error('Upload failed.');
-    };
+    handleUploadFailed (filename, xhr) {
+        alertify.alert('Error', `Failed to add track "${_.escape(filename)}"` + (xhr.responseText ? `<br>${xhr.responseText}` : ''));
+    }
 
-    handleUploadSuccess = () => {
-    };
+    handleUploadSuccess (filename, xhr) {
+    }
 
-    handleUploadComplete = () => {
+    handleUploadComplete (filename, xhr) {
         var uploads = this.state.uploads.slice();
         uploads.shift();
         clearTimeout(this.transcodingTimeout);
@@ -372,7 +375,7 @@ class Room extends React.Component {
                 });
             }
         });
-    };
+    }
 
     handleRequestUpload = (files) => {
         var uploads = this.state.uploads.slice();

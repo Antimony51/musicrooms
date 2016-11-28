@@ -141,7 +141,7 @@ class Player extends React.Component {
         if (track){
             players.push(<ReactPlayer key={playerKey}
                 ref={(player) => this.player = player}
-                url={track.type == 'file' ? (track.link + '?room=' + app.currentRoom.name) : track.link}
+                url={track.link}
                 playing={playing}
                 volume={mute ? 0 : volume}
                 youtubeConfig={youtubeConfig}
@@ -157,7 +157,7 @@ class Player extends React.Component {
             if (preloadTrack){
                 players.push(<ReactPlayer key={(playerKey+1) % 2}
                     ref={(player) => this.preloadPlayer = player}
-                    url={preloadTrack.type == 'file' ? (preloadTrack.link + '?room=' + app.currentRoom.name) : preloadTrack.link}
+                    url={preloadTrack.link}
                     playing={false}
                     volume={mute ? 0 : volume}
                     youtubeConfig={youtubeConfig}
@@ -187,7 +187,7 @@ class Player extends React.Component {
                         </div>
                     </div>
                     <div className="row h5">
-                        <div className="col-sm-3 hidden-xs">
+                        <div className="col-xs-3">
                             <div>
                                 {
                                     track ? (
@@ -198,7 +198,7 @@ class Player extends React.Component {
                                 }
                             </div>
                         </div>
-                        <div className="col-sm-6 text-center">
+                        <div className="col-xs-6 text-center">
                             {
                                 track && (
                                     <span className="text-muted">
@@ -211,7 +211,7 @@ class Player extends React.Component {
                                 )
                             }
                         </div>
-                        <div className="col-sm-3 text-center-xs text-right-sm">
+                        <div className="col-xs-3 text-right">
                             {
                                 track && (track.type === 'youtube' || track.type === 'soundcloud') && (
                                     <CopyLink link={track.link} className="spacer-after" />

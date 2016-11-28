@@ -15,7 +15,7 @@ return [
     |
     */
 
-    'default' => 'local',
+    'default' => env('STORAGE_DRIVER', 'local'),
 
     /*
     |--------------------------------------------------------------------------
@@ -28,7 +28,7 @@ return [
     |
     */
 
-    'cloud' => 's3',
+    'cloud' => env('CLOUD_DRIVER', 's3'),
 
     /*
     |--------------------------------------------------------------------------
@@ -43,6 +43,11 @@ return [
 
     'disks' => [
 
+        'temp' => [
+            'driver' => 'local',
+            'root' => env('TEMP_DIR', '/tmp/musicrooms'),
+        ],
+
         'local' => [
             'driver' => 'local',
             'root' => storage_path('app'),
@@ -56,10 +61,10 @@ return [
 
         's3' => [
             'driver' => 's3',
-            'key' => 'your-key',
-            'secret' => 'your-secret',
-            'region' => 'your-region',
-            'bucket' => 'your-bucket',
+            'key' => env('S3_KEY', ''),
+            'secret' => env('S3_SECRET', ''),
+            'region' => env('S3_REGION', ''),
+            'bucket' => env('S3_BUCKET', ''),
         ],
 
     ],
