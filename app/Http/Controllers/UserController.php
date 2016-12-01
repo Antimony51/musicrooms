@@ -151,14 +151,17 @@ class UserController extends Controller
                     return reponse("Error while uploading", 400);
                 }
 
-                $im = new Imagick($icon->getPathname());
+                $uri = hash_file('sha1', $icon->path());
+                $im = new Imagick($icon->path());
                 $im->setImageFormat('png');
                 $im->thumbnailImage(200, 200, true, true);
-                $largePath = 'uploads/img/' . $user->name . '_large.png';
+                $largePath = 'uploads/img/avatar/' . $uri . '_200.png';
                 Storage::cloud()->put($largePath, $im->getImageBlob(), 'public');
+                Storage::cloud()->delete($profile->getOriginal('icon_large'));
                 $im->thumbnailImage(48, 48, true, true);
-                $smallPath = 'uploads/img/' . $user->name . '_small.png';
+                $smallPath = 'uploads/img/avatar/' . $uri . '_48.png';
                 Storage::cloud()->put($smallPath, $im->getImageBlob(), 'public');
+                Storage::cloud()->delete($profile->getOriginal('icon_small'));
 
                 $profile->icon_large = $largePath;
                 $profile->icon_small = $smallPath;
