@@ -30,7 +30,7 @@
     </script>
 
     @stack('scripts_before')
-    
+
     <script src="{{ asset('js/app.js') }}"></script>
 </head>
 <body id="app-layout">
@@ -73,8 +73,9 @@
                                 </a>
 
                                 <ul class="dropdown-menu" role="menu">
-                                    <li><a href="{{ route('user', Auth::user()->name) }}">Profile</a></li>
-                                    <li><a href="{{ url('/logout') }}">Logout</a></li>
+                                    <li><a href="{{ route('user', Auth::user()->name) }}"><i class="fa fa-user"></i> Profile</a></li>
+                                    <li><a href="{{ route('userSettings') }}"><i class="fa fa-cog"></i> Settings</a></li>
+                                    <li><a href="{{ url('/logout') }}"><i class="fa fa-sign-out"></i> Logout</a></li>
                                 </ul>
                             </li>
                         @endif

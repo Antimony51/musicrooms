@@ -52,6 +52,8 @@ Route::group(['middleware' => 'auth'], function(){
     Route::post('favorites/remove/{id}', 'UserController@removeFavorite');
     Route::post('savedrooms/add/{room}', 'UserController@addSavedRoom');
     Route::post('savedrooms/remove/{room}', 'UserController@removeSavedRoom');
+    Route::get('usersettings', 'UserController@showUserSettings')->name('userSettings');
+    Route::post('updateuser', 'UserController@updateUser')->name('updateUser');
 
     // Rooms
     Route::group(['prefix' => 'rooms'], function(){

@@ -135,7 +135,18 @@ class UserController extends Controller
                     return $item;
                 }
             })->toArray();
-            $validator = $this->validator($data);
+
+            $validator = Validator::make($data, [
+                'cosmetic-name' => 'max:24',
+                'icon' => 'file|image|max:100000',
+                'bio' => 'max:1000'
+            ]);
+            $validator->setAttributeNames([
+                'cosmetic-name' => 'cosmetic name',
+                'icon' => 'profile picture',
+                'bio' => 'about me'
+            ]);
+            return $validator;
 
             if ($validator->fails()) {
                 $this->throwValidationException(
@@ -177,21 +188,6 @@ class UserController extends Controller
         }
     }
 
-    protected function validator(array $data)
-    {
-        $validator = Validator::make($data, [
-            'cosmetic-name' => 'max:24',
-            'icon' => 'file|image|max:100000',
-            'bio' => 'max:1000'
-        ]);
-        $validator->setAttributeNames([
-            'cosmetic-name' => 'cosmetic name',
-            'icon' => 'profile picture',
-            'bio' => 'about me'
-        ]);
-        return $validator;
-    }
-
     public function addFriend(User $user, Request $request){
         if(!$user->is($request->user())){
             $request->user()->befriend($user);
@@ -226,5 +222,96 @@ class UserController extends Controller
         }else{
             return response("You can't deny yourself.", 403);
         }
+    }
+
+    public function showUserSettings(Request $request){
+        $user = $request->user();
+
+        return view('user.settings', compact('user'));
+    }
+
+    public function updateUser(Request $request){
+        $data = $request->all();
+        $user = $request->user();
+
+        $rules = [
+            'name' => 'username_chars|max:24|unique:users,name',
+            'email' => 'email|max:255|unique:users',
+            'password' => 'min:6|confirmed',
+        ];
+
+        if (config('auth.passwords.users.use_security_questions')){
+            $numSecurityQuestions = config('auth.passwords.users.num_security_questions');
+            $rules = array_merge($rules, [
+                'questions' => "required|size:$numSecurityQuestions",
+                'questions.*' => 'required|max:255',
+                'answers.*' => 'max:255'
+            ]);
+        }
+
+        if (isset($data['name']) && $data['name'] == $user->name){
+            unset($rules['name']);
+            unset($data['name']);
+        }
+
+        if (isset($data['email']) && $data['email'] == $user->email){
+            unset($rules['email']);
+            unset($data['email']);
+        }
+
+        if (isset($data['password']) && $data['password'] == $user->password){
+            unset($rules['password']);
+            unset($data['password']);
+        }
+
+        $validator = Validator::make($data, $rules);
+
+        $rules = [
+            'name' => 'username_chars|max:24|unique:users,name',
+            'email' => 'email|max:255|unique:users',
+            'password' => 'min:6|confirmed',
+        ];
+
+        if (config('auth.passwords.users.use_security_questions')){
+            $numSecurityQuestions = config('auth.passwords.users.num_security_questions');
+            $rules = array_merge($rules, [
+                'questions' => "required|size:$numSecurityQuestions",
+                'questions.*' => 'required|max:255',
+                'answers.*' => 'max:255'
+            ]);
+        }
+
+        $validator->setAttributeNames([
+            'name' => 'username',
+            'email' => 'email',
+            'password' => 'password',
+            'questions' => 'security questions',
+            'questions.*' => 'security question',
+            'answers.*' => 'security answer',
+        ]);
+
+        if ($validator->fails()) {
+            $this->throwValidationException(
+                $request, $validator
+            );
+        }
+
+        if (!empty($data['name'])) $user->name = $data['name'];
+        if (!empty($data['email'])) $user->email = $data['email'];
+        if (!empty($data['password']))  $user->password = bcrypt($data['password']);
+        if (config('auth.passwords.users.use_security_questions')){
+            $user->questions = $data['questions'];
+            $user->answers = array_map(function($answer, $oldAnswer){
+                $normalized = strtolower(preg_replace('/\s+/', ' ', trim($answer)));
+                if (!empty($normalized)){
+                    return bcrypt($normalized);
+                }else{
+                    return $oldAnswer;
+                }
+            }, $data['answers'], $user->answers);
+        }
+        $user->save();
+
+        return redirect(route('user', ['user' => $user]));
     }
 }
