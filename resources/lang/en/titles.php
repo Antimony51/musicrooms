@@ -1,5 +1,5 @@
 <?php
 
 return [
-    'app_name' => 'App Name'
+    'app_name' => 'Music Rooms'
 ];

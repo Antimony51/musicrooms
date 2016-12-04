@@ -48,16 +48,33 @@ class AuthController extends Controller
      */
     protected function validator(array $data)
     {
-        $validator = Validator::make($data, [
+
+        $rules = [
             'name' => 'required|username_chars|max:24|unique:users,name',
             'email' => 'required|email|max:255|unique:users',
             'password' => 'required|min:6|confirmed',
-        ]);
+        ];
+
+        if (config('auth.passwords.users.use_security_questions')){
+            $numSecurityQuestions = config('auth.passwords.users.num_security_questions');
+            $rules = array_merge($rules, [
+                'questions' => "required|size:$numSecurityQuestions",
+                'answers' => "required|size:$numSecurityQuestions",
+                'questions.*' => 'required|max:255',
+                'answers.*' => 'required|max:255'
+            ]);
+        }
+
+        $validator = Validator::make($data, $rules);
 
         $validator->setAttributeNames([
             'name' => 'username',
             'email' => 'email',
-            'password' => 'password'
+            'password' => 'password',
+            'questions' => 'security questions',
+            'answers' => 'security answers',
+            'questions.*' => 'security question',
+            'answers.*' => 'security answer',
         ]);
 
         return $validator;
@@ -75,8 +92,14 @@ class AuthController extends Controller
             'name' => $data['name'],
             'email' => $data['email'],
             'password' => bcrypt($data['password']),
+            'questions' => $data['questions'],
+            'answers' => array_map(function ($v) {
+                $normalized = strtolower(preg_replace('/\s+/', ' ', trim($v)));
+                return bcrypt($normalized);
+            }, $data['answers'])
         ]);
 
+        // create blank profile
         $user->profile()->create([]);
 
         return $user;

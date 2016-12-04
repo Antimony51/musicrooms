@@ -3,6 +3,7 @@ namespace App;
 use Hootlex\Friendships\Traits\Friendable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Auth;
+
 class User extends Authenticatable
 {
     use Friendable, Comparable;
@@ -13,7 +14,7 @@ class User extends Authenticatable
      * @var array
      */
     protected $fillable = [
-        'name', 'email', 'password',
+        'name', 'email', 'password', 'questions', 'answers'
     ];
 
     protected $visible = [
@@ -93,5 +94,21 @@ class User extends Authenticatable
 
     public function getFriendStatusAttribute(){
         return $this->friendStatus();
+    }
+
+    public function getQuestionsAttribute($value){
+        return json_decode($value);
+    }
+
+    public function setQuestionsAttribute($value){
+        $this->attributes['questions'] = json_encode($value);
+    }
+
+    public function getAnswersAttribute($value){
+        return json_decode($value);
+    }
+
+    public function setAnswersAttribute($value){
+        $this->attributes['answers'] = json_encode($value);
     }
 }

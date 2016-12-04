@@ -101,6 +101,8 @@ return [
             'email' => 'auth.emails.password',
             'table' => 'password_resets',
             'expire' => 60,
+            'use_security_questions' => env('USE_SECURITY_QUESTIONS', false),
+            'num_security_questions' => 3
         ],
     ],
 
