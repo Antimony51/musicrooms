@@ -17,6 +17,8 @@ class RoomsTableSeeder extends Seeder
             foreach (App\User::inRandomOrder()->take(rand(0, 5))->get() as $user) {
                 $user->savedRooms()->attach($room->id);
             }
+
+            $room->save();
         });
     }
 }
