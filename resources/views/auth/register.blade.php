@@ -14,7 +14,7 @@
                             <label for="name" class="col-sm-4 control-label">Username</label>
 
                             <div class="col-sm-6">
-                                <input id="name" type="text" class="form-control" name="name" value="{{ old('name') }}">
+                                <input id="name" type="text" maxlength="24" class="form-control" name="name" value="{{ old('name') }}">
 
                                 @if ($errors->has('name'))
                                     <span class="help-block">
@@ -28,7 +28,7 @@
                             <label for="email" class="col-sm-4 control-label">E-Mail Address</label>
 
                             <div class="col-sm-6">
-                                <input id="email" type="email" class="form-control" name="email" value="{{ old('email') }}">
+                                <input id="email" type="email" maxlength="255" class="form-control" name="email" value="{{ old('email') }}">
 
                                 @if ($errors->has('email'))
                                     <span class="help-block">
@@ -42,7 +42,7 @@
                             <label for="password" class="col-sm-4 control-label">Password</label>
 
                             <div class="col-sm-6">
-                                <input id="password" type="password" class="form-control" name="password">
+                                <input id="password" type="password" maxlength="255" class="form-control" name="password">
 
                                 @if ($errors->has('password'))
                                     <span class="help-block">
@@ -56,7 +56,7 @@
                             <label for="password-confirm" class="col-sm-4 control-label">Confirm Password</label>
 
                             <div class="col-sm-6">
-                                <input id="password-confirm" type="password" class="form-control" name="password_confirmation">
+                                <input id="password-confirm" type="password" maxlength="255" class="form-control" name="password_confirmation">
 
                                 @if ($errors->has('password_confirmation'))
                                     <span class="help-block">
@@ -89,7 +89,7 @@
                                         <label for="question{{$i}}" class="col-sm-4 control-label">Question {{$i+1}}</label>
 
                                         <div class="col-sm-6">
-                                            <input id="question{{$i}}" type="text" class="form-control" autocomplete="off"
+                                            <input id="question{{$i}}" type="text" maxlength="255" class="form-control" autocomplete="off"
                                                 name="questions[{{$i}}]" value="{{ old("questions.$i") }}">
 
                                             @if ($errors->has("questions.$i"))
@@ -103,7 +103,7 @@
                                         <label for="answer{{$i}}" class="col-sm-4 control-label">Answer {{$i+1}}</label>
 
                                         <div class="col-sm-6">
-                                            <input id="answer{{$i}}" type="text" class="form-control" autocomplete="off"
+                                            <input id="answer{{$i}}" type="text" maxlength="255" class="form-control" autocomplete="off"
                                                 name="answers[{{$i}}]" value="{{ old("answers.$i") }}">
 
                                             @if ($errors->has("answers.$i"))

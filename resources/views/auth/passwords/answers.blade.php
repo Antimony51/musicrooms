@@ -37,7 +37,7 @@
                                     <label for="answer{{$i}}" class="col-sm-4 control-label">Answer {{$i+1}}</label>
 
                                     <div class="col-sm-6">
-                                        <input id="answer{{$i}}" type="text" class="form-control" autocomplete="off"
+                                        <input id="answer{{$i}}" type="text" maxlength="255" class="form-control" autocomplete="off"
                                             name="answers[{{$i}}]" value="{{ old("answers.$i") }}">
 
                                         @if ($errors->has("answers.$i"))

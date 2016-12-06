@@ -53,7 +53,7 @@ class RoomController extends Controller
         $validator = Validator::make($data, [
             'visibility' => 'required|in:public,private',
             'name' => 'required|username_chars|max:24|unique:rooms,name',
-            'title' => 'required|max:24',
+            'title' => 'required|max:40',
             'description' => 'max:1000',
         ]);
         $validator->setAttributeNames([
@@ -114,7 +114,7 @@ class RoomController extends Controller
             $validator = Validator::make($data, [
                 'visibility' => 'in:public,private',
                 'name' => 'username_chars|max:24|unique:rooms,name',
-                'title' => 'max:24',
+                'title' => 'max:40',
                 'description' => 'max:1000',
                 'user_limit' => 'integer|min:0',
                 'user_queue_limit' => 'integer|min:0',

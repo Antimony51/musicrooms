@@ -31,7 +31,7 @@
 
                             <div class="col-sm-6">
                                 <div>
-                                <input id="name" type="text" class="form-control" value="{{ old('name', $room->name) }}" autocomplete="off">
+                                <input id="name" type="text" maxlength="24" class="form-control" value="{{ old('name', $room->name) }}" autocomplete="off">
                                 <input type="hidden" name="name" value="{{ old('name', $room->name) }}">
                                 <span class="help-block text-muted hidden url-preview">{{ url('/room') . '/'}}<strong class="value"></strong></span>
 
@@ -47,7 +47,7 @@
                             <label for="title" class="col-sm-4 control-label">Title</label>
 
                             <div class="col-sm-6">
-                                <input id="title" type="text" class="form-control" name="title" value="{{ old('title', $room->title) }}" autocomplete="off">
+                                <input id="title" type="text" maxlength="40" class="form-control" name="title" value="{{ old('title', $room->title) }}" autocomplete="off">
 
                                 @if ($errors->has('title'))
                                     <span class="help-block">
@@ -61,7 +61,7 @@
                             <label for="description" class="col-sm-4 control-label">Description</label>
 
                             <div class="col-sm-6">
-                                <textarea id="description" type="text" class="form-control" name="description">{{ old('description', $room->description) }}</textarea>
+                                <textarea id="description" class="form-control" maxlength="1000" name="description">{{ old('description', $room->description) }}</textarea>
 
                                 @if ($errors->has('description'))
                                     <span class="help-block">
@@ -103,7 +103,7 @@
                             <label for="owner" class="col-sm-4 control-label">Owner</label>
 
                             <div class="col-sm-6">
-                                <input id="owner" type="text" class="form-control" name="owner" value="{{ old('owner', $room->owner ? $room->owner->name : '') }}" placeholder="Nobody" autocomplete="off">
+                                <input id="owner" type="text" maxlength="24" class="form-control" name="owner" value="{{ old('owner', $room->owner ? $room->owner->name : '') }}" placeholder="Nobody" autocomplete="off">
 
                                 @if ($errors->has('owner'))
                                     <span class="help-block">

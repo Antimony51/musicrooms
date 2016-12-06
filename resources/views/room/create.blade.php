@@ -30,7 +30,7 @@
                             <label for="name" class="col-sm-4 control-label">URL</label>
 
                             <div class="col-sm-6">
-                                <input id="name" type="text" class="form-control" value="{{ old('name', $suggestedName) }}" autocomplete="off">
+                                <input id="name" type="text" maxlength="24" class="form-control" value="{{ old('name', $suggestedName) }}" autocomplete="off">
                                 <input type="hidden" name="name" value="{{ old('name') }}">
                                 <span class="help-block text-muted hidden url-preview">{{ url('/room') . '/'}}<strong class="value"></strong></span>
 
@@ -46,7 +46,7 @@
                             <label for="title" class="col-sm-4 control-label">Title</label>
 
                             <div class="col-sm-6">
-                                <input id="title" type="text" class="form-control" name="title" value="{{ old('title') }}" autocomplete="off">
+                                <input id="title" type="text" maxlength="40" class="form-control" name="title" value="{{ old('title') }}" autocomplete="off">
 
                                 @if ($errors->has('title'))
                                     <span class="help-block">

@@ -282,7 +282,7 @@ class UserController extends Controller
             $rules = [
                 'name' => 'username_chars|max:24|unique:users,name',
                 'email' => 'email|max:255|unique:users',
-                'password' => 'min:6|confirmed',
+                'password' => 'min:6|max:255|confirmed',
             ];
 
             if (config('auth.passwords.users.use_security_questions')){

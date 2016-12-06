@@ -14,7 +14,7 @@
                                 <label for="cosmetic-name" class="col-sm-4 control-label">Cosmetic Name</label>
 
                                 <div class="col-sm-6">
-                                    <input id="cosmetic-name" type="text" class="form-control" name="cosmetic-name" value="{{ old('cosmetic-name', $profile->cosmetic_name) }}">
+                                    <input id="cosmetic-name" type="text" maxlength="24" class="form-control" name="cosmetic-name" value="{{ old('cosmetic-name', $profile->cosmetic_name) }}">
 
                                     @if ($errors->has('cosmetic-name'))
                                         <span class="help-block">
@@ -42,7 +42,7 @@
                                 <label for="bio" class="col-sm-4 control-label">About Me</label>
 
                                 <div class="col-sm-6">
-                                    <textarea id="bio" class="form-control" name="bio">{{ old('bio', $profile->bio) }}</textarea>
+                                    <textarea id="bio" class="form-control" maxlength="1000" name="bio">{{ old('bio', $profile->bio) }}</textarea>
 
                                     @if ($errors->has('bio'))
                                         <span class="help-block">

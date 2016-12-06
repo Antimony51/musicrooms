@@ -21,7 +21,7 @@
                             <label for="email" class="col-sm-4 control-label">E-Mail Address</label>
 
                             <div class="col-sm-6">
-                                <input id="email" type="email" class="form-control" name="email" value="{{ old('email') }}">
+                                <input id="email" type="email" maxlength="255" class="form-control" name="email" value="{{ old('email') }}">
 
                                 @if ($errors->has('email'))
                                     <span class="help-block">
