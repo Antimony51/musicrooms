@@ -12,7 +12,7 @@ class Room extends Model
     ];
 
     protected $visible = [
-        'name', 'visibility', 'title', 'description', 'owner', 'user_count', 'isSaved'
+        'name', 'visibility', 'title', 'description', 'owner', 'user_count', 'user_limit', 'user_queue_limit', 'isSaved'
     ];
 
     protected $appends = [

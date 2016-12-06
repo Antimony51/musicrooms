@@ -12,6 +12,9 @@
         </a>
         <span class="pull-right text-muted">
             Users: {{ $userCount }}
+            @if($room->user_limit > 0)
+                / {{$room->user_limit}}
+            @endif
         </span>
         <br>
         @if(!is_null($currentTrack))

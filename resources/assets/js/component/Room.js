@@ -596,7 +596,11 @@ class Room extends React.Component {
                             <div className="panel panel-default users-panel">
                                 <div className="panel-heading">
                                     <div className="panel-title">
-                                        Users ({users.length})
+                                        Users ({users.length}{
+                                            app.currentRoom.user_limit > 0 ? (
+                                                ` / ${app.currentRoom.user_limit}`
+                                            ) : null
+                                        })
                                     </div>
                                 </div>
                                 <UserList users={users}/>

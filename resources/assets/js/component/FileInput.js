@@ -18,7 +18,7 @@ class FileInput extends React.Component {
         var text = '';
         if (files.length == 1){
             text = files[0].name;
-        }else if (this.files.length > 1){
+        }else if (files.length > 1){
             text = files.length + ' selected';
         }
 
