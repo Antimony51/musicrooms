@@ -17,6 +17,7 @@ class CreateUsersTable extends Migration
             $table->string('password');
             $table->text('questions')->nullable();
             $table->text('answers')->nullable();
+            $table->boolean('admin')->default(false);
             $table->rememberToken();
             $table->timestamps();
         });

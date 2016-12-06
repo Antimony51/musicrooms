@@ -101,14 +101,13 @@ class AddTrackButton extends React.Component {
     render () {
 
         var className = this.props.className;
-        var buttonClass = this.props.buttonClass;
 
         var modalIsOpen = this.state.modalIsOpen;
         var selectedTab = this.state.selectedTab;
 
         return (
             <span className={(className || '')}>
-                <button className={'btn btn-default ' + (buttonClass || '')} onClick={this.handleClick}>Add Track</button>
+                <i className="icon-button fa fa-plus text-success" title="Add Track" onClick={this.handleClick} />
                 <Modal
                     isOpen={modalIsOpen}
                     onAfterOpen={this.handleAfterOpen}

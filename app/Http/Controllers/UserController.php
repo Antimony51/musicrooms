@@ -22,7 +22,8 @@ class UserController extends Controller
     public function showUserList()
     {
         $users = User::orderBy('created_at', 'desc')->paginate(10);
-        return view('user.list', compact('users'));
+        $settingsButton = true;
+        return view('user.list', compact('users', 'settingsButton'));
     }
 
     public function showOverview(User $user, Request $request){
@@ -77,7 +78,7 @@ class UserController extends Controller
     }
 
     public function showEditProfile(User $user, Request $request){
-        if ($user->is($request->user())) {
+        if ($user->is($request->user()) || $request->user()->admin) {
             $profile = $user->profile;
             return view('user.edit', compact('user', 'profile'));
         }else{
@@ -125,7 +126,7 @@ class UserController extends Controller
 
     public function updateProfile(User $user, Request $request)
     {
-        if ($user->is($request->user())) {
+        if ($user->is($request->user()) || $request->user()->admin) {
             $data = collect($request->all())->map(function($item, $key){
                 if ($key == 'cosmetic-name' ||
                     $key == 'bio')
@@ -146,7 +147,6 @@ class UserController extends Controller
                 'icon' => 'profile picture',
                 'bio' => 'about me'
             ]);
-            return $validator;
 
             if ($validator->fails()) {
                 $this->throwValidationException(
@@ -165,14 +165,25 @@ class UserController extends Controller
                 $uri = hash_file('sha1', $icon->path());
                 $im = new Imagick($icon->path());
                 $im->setImageFormat('png');
-                $im->thumbnailImage(200, 200, true, true);
+                $geo = $im->getImageGeometry();
+                if(($geo['width']/200) < ($geo['height']/200))
+                {
+                    $im->cropImage($geo['width'], floor(200*$geo['width']/200),
+                        0, (($geo['height']-(200*$geo['width']/200))/2));
+                }
+                else
+                {
+                    $im->cropImage(ceil(200*$geo['height']/200), $geo['height'],
+                        (($geo['width']-(200*$geo['height']/200))/2), 0);
+                }
+                $im->thumbnailImage(200, 200, true);
                 $largePath = 'uploads/img/avatar/' . $uri . '_200.png';
-                Storage::cloud()->put($largePath, $im->getImageBlob(), 'public');
                 Storage::cloud()->delete($profile->getOriginal('icon_large'));
-                $im->thumbnailImage(48, 48, true, true);
+                Storage::cloud()->put($largePath, $im->getImageBlob(), 'public');
+                $im->thumbnailImage(48, 48, true);
                 $smallPath = 'uploads/img/avatar/' . $uri . '_48.png';
-                Storage::cloud()->put($smallPath, $im->getImageBlob(), 'public');
                 Storage::cloud()->delete($profile->getOriginal('icon_small'));
+                Storage::cloud()->put($smallPath, $im->getImageBlob(), 'public');
 
                 $profile->icon_large = $largePath;
                 $profile->icon_small = $smallPath;
@@ -224,94 +235,116 @@ class UserController extends Controller
         }
     }
 
-    public function showUserSettings(Request $request){
-        $user = $request->user();
-
-        return view('user.settings', compact('user'));
+    public function showUserSettings(User $user, Request $request){
+        if ($user->is($request->user()) || $request->user()->admin){
+            return view('user.settings', compact('user'));
+        }else{
+            abort(403, "You don't have permission to edit this user's settings.");
+        }
     }
 
-    public function updateUser(Request $request){
-        $data = $request->all();
-        $user = $request->user();
+    public function updateUser(User $user, Request $request){
+        if ($user->is($request->user()) || $request->user()->admin){
+            $data = $request->all();
 
-        $rules = [
-            'name' => 'username_chars|max:24|unique:users,name',
-            'email' => 'email|max:255|unique:users',
-            'password' => 'min:6|confirmed',
-        ];
+            $rules = [
+                'name' => 'username_chars|max:24|unique:users,name',
+                'email' => 'email|max:255|unique:users',
+                'password' => 'min:6|confirmed',
+            ];
 
-        if (config('auth.passwords.users.use_security_questions')){
-            $numSecurityQuestions = config('auth.passwords.users.num_security_questions');
-            $rules = array_merge($rules, [
-                'questions' => "required|size:$numSecurityQuestions",
-                'questions.*' => 'required|max:255',
-                'answers.*' => 'max:255'
+            if (config('auth.passwords.users.use_security_questions')){
+                $numSecurityQuestions = config('auth.passwords.users.num_security_questions');
+                $rules = array_merge($rules, [
+                    'questions' => "required|size:$numSecurityQuestions",
+                    'questions.*' => 'required|max:255',
+                    'answers.*' => 'max:255'
+                ]);
+            }
+
+            if (isset($data['name']) && $data['name'] == $user->name){
+                unset($rules['name']);
+                unset($data['name']);
+            }
+
+            if (isset($data['email']) && $data['email'] == $user->email){
+                unset($rules['email']);
+                unset($data['email']);
+            }
+
+            if (isset($data['password']) && $data['password'] == $user->password){
+                unset($rules['password']);
+                unset($data['password']);
+            }
+
+            $validator = Validator::make($data, $rules);
+
+            $rules = [
+                'name' => 'username_chars|max:24|unique:users,name',
+                'email' => 'email|max:255|unique:users',
+                'password' => 'min:6|confirmed',
+            ];
+
+            if (config('auth.passwords.users.use_security_questions')){
+                $numSecurityQuestions = config('auth.passwords.users.num_security_questions');
+                $rules = array_merge($rules, [
+                    'questions' => "required|size:$numSecurityQuestions",
+                    'questions.*' => 'required|max:255',
+                    'answers.*' => 'max:255'
+                ]);
+            }
+
+            $validator->setAttributeNames([
+                'name' => 'username',
+                'email' => 'email',
+                'password' => 'password',
+                'questions' => 'security questions',
+                'questions.*' => 'security question',
+                'answers.*' => 'security answer',
             ]);
+
+            if ($validator->fails()) {
+                $this->throwValidationException(
+                    $request, $validator
+                );
+            }
+
+            if (!empty($data['name'])) $user->name = $data['name'];
+            if (!empty($data['email'])) $user->email = $data['email'];
+            if (!empty($data['password']))  $user->password = bcrypt($data['password']);
+            if (config('auth.passwords.users.use_security_questions')){
+                $user->questions = $data['questions'];
+                $user->answers = array_map(function($answer, $oldAnswer){
+                    $normalized = strtolower(preg_replace('/\s+/', ' ', trim($answer)));
+                    if (!empty($normalized)){
+                        return bcrypt($normalized);
+                    }else{
+                        return $oldAnswer;
+                    }
+                }, $data['answers'], $user->answers ?: []);
+            }
+
+            if ($request->user()->admin){
+                $user->admin = isset($data['admin']) ? true : false;
+            }
+
+            $user->save();
+
+            return redirect(route('user', ['user' => $user]));
+        }else{
+            abort(403, "You don't have permission to edit this user's settings.");
         }
+    }
 
-        if (isset($data['name']) && $data['name'] == $user->name){
-            unset($rules['name']);
-            unset($data['name']);
+    public function delete(User $user, Request $request){
+        if ($user->is($request->user()) || $request->user()->admin){
+            if ($user->is($request->user())){
+                Auth::logout();
+            }
+            $user->delete();
+            return redirect(url('/'));
+        }else{
+            abort(403, "You don't have permission to delete this user.");
         }
-
-        if (isset($data['email']) && $data['email'] == $user->email){
-            unset($rules['email']);
-            unset($data['email']);
-        }
-
-        if (isset($data['password']) && $data['password'] == $user->password){
-            unset($rules['password']);
-            unset($data['password']);
-        }
-
-        $validator = Validator::make($data, $rules);
-
-        $rules = [
-            'name' => 'username_chars|max:24|unique:users,name',
-            'email' => 'email|max:255|unique:users',
-            'password' => 'min:6|confirmed',
-        ];
-
-        if (config('auth.passwords.users.use_security_questions')){
-            $numSecurityQuestions = config('auth.passwords.users.num_security_questions');
-            $rules = array_merge($rules, [
-                'questions' => "required|size:$numSecurityQuestions",
-                'questions.*' => 'required|max:255',
-                'answers.*' => 'max:255'
-            ]);
-        }
-
-        $validator->setAttributeNames([
-            'name' => 'username',
-            'email' => 'email',
-            'password' => 'password',
-            'questions' => 'security questions',
-            'questions.*' => 'security question',
-            'answers.*' => 'security answer',
-        ]);
-
-        if ($validator->fails()) {
-            $this->throwValidationException(
-                $request, $validator
-            );
-        }
-
-        if (!empty($data['name'])) $user->name = $data['name'];
-        if (!empty($data['email'])) $user->email = $data['email'];
-        if (!empty($data['password']))  $user->password = bcrypt($data['password']);
-        if (config('auth.passwords.users.use_security_questions')){
-            $user->questions = $data['questions'];
-            $user->answers = array_map(function($answer, $oldAnswer){
-                $normalized = strtolower(preg_replace('/\s+/', ' ', trim($answer)));
-                if (!empty($normalized)){
-                    return bcrypt($normalized);
-                }else{
-                    return $oldAnswer;
-                }
-            }, $data['answers'], $user->answers);
-        }
-        $user->save();
-
-        return redirect(route('user', ['user' => $user]));
     }
 }

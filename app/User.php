@@ -18,7 +18,7 @@ class User extends Authenticatable
     ];
 
     protected $visible = [
-        'name', 'displayName', 'iconSmall', 'iconLarge', 'friendStatus'
+        'name', 'displayName', 'iconSmall', 'iconLarge', 'friendStatus', 'admin',
     ];
 
     protected $appends = [

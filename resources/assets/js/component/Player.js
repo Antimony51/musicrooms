@@ -102,6 +102,20 @@ class Player extends React.Component {
 
     handleSeekBarChange = (value) => {
         this.seekFraction(value);
+        var track = this.state.track;
+        if (track){
+            var pos = track.duration*value;
+            $.ajax({
+                url: `/room/${app.currentRoom.name}/seekto`,
+                method: 'post',
+                data: {
+                    pos: pos
+                }
+            })
+                .fail((xhr) => {
+                    alertify.alert('Error', `Failed to seek.` + (xhr.responseText ? `<br>${xhr.responseText}` : ''));
+                });
+        }
     };
 
     componentWillReceiveProps(nextProps) {
@@ -130,11 +144,25 @@ class Player extends React.Component {
 
     }
 
+    handleRequestSkipCurrentTrack = () => {
+        $.ajax({
+            url: `/room/${app.currentRoom.name}/skipcurrent`,
+            method: 'post',
+        })
+            .fail((xhr) => {
+                alertify.alert('Error', `Failed to skip current track.` + (xhr.responseText ? `<br>${xhr.responseText}` : ''));
+            });
+    }
+
     render() {
 
         const {
             track, playing, played, volume, mute, preloadTrack, playerKey
         } = this.state;
+
+        const isTrackOwner = track && track.owner.name == app.currentUser.name;
+        const isRoomOwner = app.currentRoom.owner && app.currentRoom.owner.name == app.currentUser.name;
+        const isAdmin = app.currentUser.admin;
 
         var players = [];
 
@@ -195,6 +223,12 @@ class Player extends React.Component {
                                     ) : (
                                         durationString(0) + ' / ' + durationString(0)
                                     )
+                                } {
+                                    track && (isRoomOwner || isTrackOwner || isAdmin) ? (
+                                        <span className="spacer-before">
+                                            <i className="icon-button fa fa-step-forward" title="Skip Current Track" onClick={this.handleRequestSkipCurrentTrack} />
+                                        </span>
+                                    ) : null
                                 }
                             </div>
                         </div>
@@ -227,7 +261,7 @@ class Player extends React.Component {
                     </div>
                 </div>
                 <div>
-                    <SeekBar value={track ? played : null} onChange={this.handleSeekBarChange} locked="true" />
+                    <SeekBar value={track ? played : null} onChange={this.handleSeekBarChange} locked={!(isRoomOwner || isAdmin)} />
                     {
                         players
                     }

@@ -33,6 +33,9 @@ class Track extends Model
     }
 
     public function getLinkAttribute($value){
-        return Storage::cloud()->url($value);
+        if ($this->type == 'file'){
+            return Storage::cloud()->url($value);
+        }
+        return $value;
     }
 }

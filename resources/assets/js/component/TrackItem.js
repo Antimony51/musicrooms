@@ -14,10 +14,11 @@ function TrackItem (props) {
         <div className="dyn-block-row">
             {
                 (track.owner.name == app.currentUser.name ||
-                    app.currentRoom.owner.name == app.currentUser.name) && 
+                    (app.currentRoom.owner && app.currentRoom.owner.name == app.currentUser.name) ||
+                    app.currentUser.admin) ?
                 (
                     <div className="icon-button track-remove rigid-right" onClick={props.onRequestRemove}><i className="fa fa-trash"></i></div>
-                )
+                ) : null
             }
             <div className="track-duration rigid-right">{durationString(track.duration)}</div>
             <ScrollyText className="track-name fluid">{name}</ScrollyText>

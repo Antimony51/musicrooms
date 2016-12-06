@@ -18,12 +18,12 @@ $user, $profile, $ownProfile, $activeTab
 @section('content')
     <div class="panel panel-default">
         <div class="panel-body">
-            <div class="profile-right-buttons">
-                @if($ownProfile)
-                    <a href="{{ route('editProfile', ['user' => $user]) }}" class="btn btn-default">Edit</a>
+            <div class="profile-right-buttons text-right">
+                @if(!$ownProfile && Auth::user()->admin)
+                    <a href="{{ route('userSettings', ['user' => $user]) }}" class="btn btn-default">Settings</a>
                 @endif
-                @if(!$ownProfile && Auth::check())
-                    @include('widgets.manage-friend', ['compact' => false])
+                @if($ownProfile || Auth::user()->admin)
+                    <a href="{{ route('editProfile', ['user' => $user]) }}" class="btn btn-default">Edit Profile</a>
                 @endif
             </div>
             <div class="media" style="margin-top: 0">
@@ -32,8 +32,19 @@ $user, $profile, $ownProfile, $activeTab
                          style="width: 200px; height: 200px;">
                 </div>
                 <div class="media-body">
-                    <h2 class="media-heading">{{ $user->displayName() }}</h2>
+                    <h2 class="media-heading">
+                        {{ $user->displayName() }}
+                        @if ($user->admin)
+                            <span class="color-red user-role" title="Admin">[A]</span>
+                        @endif
+                    </h2>
+                    @if(!$ownProfile)
+                        <p>
+                            @include('widgets.manage-friend', ['compact' => false])
+                        </p>
+                    @endif
                     <h3>Plays: {{ $profile->plays }}</h3>
+                    <h3>Favs: {{ $user->favoriteTracks()->count() }}</h3>
                 </div>
             </div>
         </div>

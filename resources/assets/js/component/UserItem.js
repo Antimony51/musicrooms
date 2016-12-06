@@ -55,7 +55,17 @@ class UserItem extends React.Component {
                     </a>
                 </div>
                 <div className="media-body media-middle">
-                    <a href={'/user/' + username} className="media-heading">{user ? user.displayName : username}</a>
+                    <span className="media-heading">
+                        <a href={'/user/' + username}>{user ? user.displayName : username}</a> {
+                            app.currentRoom && user && app.currentRoom.owner && app.currentRoom.owner.name == user.name ?
+                                <span className="color-darkgreen user-role" title="Room Owner">[O]</span>
+                            : null
+                        } {
+                            user && user.admin ?
+                                <span className="color-red user-role" title="Admin">[A]</span>
+                            : null
+                        }
+                    </span>
                 </div>
             </div>
         );

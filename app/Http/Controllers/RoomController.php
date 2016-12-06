@@ -81,7 +81,8 @@ class RoomController extends Controller
     }
 
     public function updateRoom(Room $room, Request $request){
-        if ($room->owner.is($request->user())){
+        $user = $request->user();
+        if ($user->is($room->owner) || $user->admin){
             $data = collect($request->all())
                 ->map(function($item, $key){
                     switch($key){
@@ -102,7 +103,11 @@ class RoomController extends Controller
                         case 'user_queue_limit':
                             return $room->{$key} != $item;
                         case 'owner':
-                            return $room->owner->name != $item;
+                            if ($room->owner){
+                                return $room->owner->name != $item;
+                            }else{
+                                return true;
+                            }
                     }
                 })->toArray();
 
@@ -131,20 +136,22 @@ class RoomController extends Controller
                 );
             }
 
-            if (isset($data['name'])) $room->name = $data['name'];
+            $roomState = RoomState::get($room);
+
+            if (isset($data['name'])){
+                $room->name = $data['name'];
+                $roomState->clearUsers();
+            }
             if (isset($data['visibility'])) $room->visibility = $data['visibility'];
             if (isset($data['title'])) $room->title = $data['title'];
             if (isset($data['description'])) $room->description = $data['description'];
             if (isset($data['user_limit'])) $room->user_limit = $data['user_limit'];
             if (isset($data['user_queue_limit'])) $room->user_queue_limit = $data['user_queue_limit'];
-            if (isset($data['owner'])) $room->owner = User::whereName($data['owner'])->first();
+            if (isset($data['owner'])) $room->owner = !empty($data['owner']) ? User::whereName($data['owner'])->first() : null;
             $room->save();
 
-            if (isset($data['name'])){
-                $roomState = RoomState::get($room);
-                $roomState->clearUsers();
-                $roomState->save();
-            }
+            $roomState->invalidateRoomData();
+            $roomState->save();
 
             return redirect(route('room', ['room' => $room]));
         }else{
@@ -153,7 +160,8 @@ class RoomController extends Controller
     }
 
     public function deleteRoom(Room $room, Request $request){
-        if ($room->owner.is($request->user())){
+        $user = $request->user();
+        if ($user->is($room->owner) || $user->admin){
             $room->delete();
 
             return redirect(route('home'));
@@ -168,9 +176,9 @@ class RoomController extends Controller
             ->orderBy('user_count', 'desc')
             ->orderBy('created_at', 'desc')
             ->paginate(10);
-        $title = "Public Rooms";
+        $activeTab = "public";
         $emptyMessage = "There are no public rooms.";
-        return view('room.list', compact('rooms', 'title', 'emptyMessage'));
+        return view('room.list', compact('rooms', 'activeTab', 'emptyMessage'));
     }
 
     public function showSavedRooms(Request $request)
@@ -179,9 +187,9 @@ class RoomController extends Controller
             ->orderBy('user_count', 'desc')
             ->orderBy('saved_rooms.created_at', 'desc')
             ->paginate(10);
-        $title = "Saved Rooms";
+        $activeTab = "saved";
         $emptyMessage = "You have no saved rooms.";
-        return view('room.list', compact('rooms', 'title', 'emptyMessage'));
+        return view('room.list', compact('rooms', 'activeTab', 'emptyMessage'));
     }
 
     public function showAllRooms()
@@ -189,9 +197,9 @@ class RoomController extends Controller
         $rooms = Room::orderBy('user_count', 'desc')
             ->orderBy('created_at', 'desc')
             ->paginate(10);
-        $title = "All Rooms";
+        $activeTab = "all";
         $emptyMessage = "There are no rooms.";
-        return view('room.list', compact('rooms', 'title', 'emptyMessage'));
+        return view('room.list', compact('rooms', 'activeTab', 'emptyMessage'));
     }
 
     public function showMyRooms(Request $request)
@@ -200,9 +208,9 @@ class RoomController extends Controller
             ->orderBy('user_count', 'desc')
             ->orderBy('created_at', 'desc')
             ->paginate(10);
-        $title = "My Rooms";
+        $activeTab = "mine";
         $emptyMessage = "You don't own any rooms.";
-        return view('room.list', compact('rooms', 'title', 'emptyMessage'));
+        return view('room.list', compact('rooms', 'activeTab', 'emptyMessage'));
     }
 
     public function syncMe (Room $room, Request $request){
@@ -405,6 +413,8 @@ class RoomController extends Controller
                 Storage::disk('temp')->delete($tmpFile);
             }
 
+            // the current state may have changed during transfer/encoding, so reload it before saving.
+            $roomState = RoomState::get($room);
             $roomState->addTrack($track->id, $track->duration, $user->name);
             $roomState->save();
 
@@ -419,10 +429,47 @@ class RoomController extends Controller
 
         $key = $request->input('key');
 
-        if (!$roomState->removeTrack($key, $user->name)){
+        if (!$roomState->removeTrack($key, $user->admin ? null : $user->name)){
             return response("You don't have permission to remove this track.",403);
         }
         $roomState->save();
+    }
+
+    public function skipCurrentTrack(Room $room, Request $request){
+        $roomState = RoomState::get($room);
+        $user = $request->user();
+        if ($roomState->advanceQueue($user->admin ? null : $user->name)){
+            $roomState->save();
+            return response("", 200);
+        }else{
+            return response("You don't have permission to skip the current track.",403);
+        }
+    }
+
+    public function seekTo(Room $room, Request $request){
+        $roomState = RoomState::get($room);
+        $user = $request->user();
+        if ($request->has('pos')){
+            if ($roomState->seekTo(floatval($request->input('pos')), $user->admin ? null : $user->name)){
+                $roomState->save();
+                return response("", 200);
+            }else{
+                return response("You don't have permission to seek the current track.",403);
+            }
+        }else{
+            return response("Position parameter missing.", 400);
+        }
+    }
+
+    public function clearQueue(Room $room, Request $request){
+        $roomState = RoomState::get($room);
+        $user = $request->user();
+        if ($roomState->clearQueue($user->admin ? null : $user->name)){
+            $roomState->save();
+            return response("", 200);
+        }else{
+            return response("You don't have permission to clear the queue.",403);
+        }
     }
 
     public function getData (Room $room, Request $request){

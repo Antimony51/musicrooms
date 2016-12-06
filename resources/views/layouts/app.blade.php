@@ -58,6 +58,9 @@
                     <ul class="nav navbar-nav">
                         <li><a href="{{ url('/home') }}">Home</a></li>
                         <li><a href="{{ url('/rooms') }}">Rooms</a></li>
+                        @if (Auth::user() && Auth::user()->admin)
+                            <li><a href="{{ url('/admin/users') }}">Users</a></li>
+                        @endif
                     </ul>
 
                     <!-- Right Side Of Navbar -->
@@ -69,12 +72,16 @@
                         @else
                             <li class="dropdown">
                                 <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
-                                    {{ Auth::user()->displayName() }} <span class="caret"></span>
+                                    {{ Auth::user()->displayName() }}
+                                    @if (Auth::user()->admin)
+                                        <span class="color-red user-role" title="Admin">[A]</span>
+                                    @endif
+                                    <span class="caret"></span>
                                 </a>
 
                                 <ul class="dropdown-menu" role="menu">
-                                    <li><a href="{{ route('user', Auth::user()->name) }}"><i class="fa fa-user"></i> Profile</a></li>
-                                    <li><a href="{{ route('userSettings') }}"><i class="fa fa-cog"></i> Settings</a></li>
+                                    <li><a href="{{ route('user', ['user' => Auth::user()]) }}"><i class="fa fa-user"></i> Profile</a></li>
+                                    <li><a href="{{ route('userSettings', ['user' => Auth::user()]) }}"><i class="fa fa-cog"></i> Settings</a></li>
                                     <li><a href="{{ url('/logout') }}"><i class="fa fa-sign-out"></i> Logout</a></li>
                                 </ul>
                             </li>

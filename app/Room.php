@@ -61,7 +61,16 @@ class Room extends Model
         return $this->isSaved();
     }
 
+    public function setOwnerAttribute($value){
+        $this->owner()->associate($value);
+    }
+
     public function getOwnerAttribute(){
-        return $this->owner()->first()->makeHidden(['iconSmall', 'iconLarge']);
+        $owner = $this->owner()->first();
+        if ($owner){
+            return $owner->makeHidden(['iconSmall', 'iconLarge']);
+        }else{
+            return null;
+        }
     }
 }

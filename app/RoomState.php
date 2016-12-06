@@ -35,6 +35,7 @@ class RoomState {
         });
 
         $roomState->update();
+        $roomState->save();
 
         return $roomState;
     }
@@ -62,7 +63,12 @@ class RoomState {
     public function __construct($roomId)
     {
         $this->id = $roomId;
-        $this->owner = Room::findOrFail($roomId)->owner->name;
+        $room = Room::findOrFail($roomId);
+        $this->owner = $room->owner ? $room->owner->name : null;
+        $this->roomDataToken = str_random(16);
+    }
+
+    public function invalidateRoomData(){
         $this->roomDataToken = str_random(16);
     }
 
@@ -110,6 +116,15 @@ class RoomState {
         $this->updateUserCount();
     }
 
+    public function clearQueue($asUser = null){
+        if (!$asUser || $asUser == $this->owner){
+            $this->queue = [];
+            $this->queueMeta = [];
+            return true;
+        }
+        return false;
+    }
+
     public function userSeen($userName){
         if ($this->hasUser($userName)){
             $this->userMeta[$userName]->seen();
@@ -138,11 +153,11 @@ class RoomState {
         }
     }
 
-    public function removeTrack($key, $userName){
+    public function removeTrack($key, $asUser = null){
         $queueChanged = false;
         foreach($this->queueMeta as $index => $meta){
             if($meta->key == $key){
-                if ($meta->owner == $userName || $userName == $this->owner){
+                if (!$asUser || $meta->owner == $asUser || $asUser == $this->owner){
                     unset($this->queue[$index]);
                     unset($this->queueMeta[$index]);
                     $queueChanged = true;
@@ -181,8 +196,20 @@ class RoomState {
             $this->users = array_values($this->users);
             $this->updateUserCount();
         }
+    }
 
-        $this->save();
+    public function seekTo($pos, $asUser = null){
+        if (!$asUser || $this->owner == $asUser){
+            if ($pos < 0) $pos = 0;
+            if ($this->currentTrack){
+                $change = $pos - $this->seek;
+                $this->currentTrackStart -= $change;
+                $this->currentTrackEnd -= $change;
+                $this->update();
+            }
+            return true;
+        }
+        return false;
     }
 
     private function updateUserCount(){
@@ -193,19 +220,23 @@ class RoomState {
         }
     }
 
-    public function advanceQueue(){
-        $this->currentTrack = array_shift($this->queue);
-        $this->currentTrackMeta = array_shift($this->queueMeta);
-        $this->currentTrackChanged = true;
-        if ($this->currentTrack){
-            $duration = $this->currentTrackMeta->duration;
-            $this->currentTrackStart = microtime(true);
-            $this->currentTrackEnd = $this->currentTrackStart + $duration;
-            $this->seek = 0;
-        }else{
-            $this->currentTrackStart = 0;
-            $this->currentTrackEnd = 0;
-            $this->seek = 0;
+    public function advanceQueue($asUser = null){
+        if (!$asUser || $asUser == $this->owner || $asUser == $this->currentTrackMeta->owner){
+            $this->currentTrack = array_shift($this->queue);
+            $this->currentTrackMeta = array_shift($this->queueMeta);
+            $this->currentTrackChanged = true;
+            if ($this->currentTrack){
+                $duration = $this->currentTrackMeta->duration;
+                $this->currentTrackStart = microtime(true);
+                $this->currentTrackEnd = $this->currentTrackStart + $duration;
+                $this->seek = 0;
+            }else{
+                $this->currentTrackStart = 0;
+                $this->currentTrackEnd = 0;
+                $this->seek = 0;
+            }
+            return true;
         }
+        return false;
     }
 }

@@ -103,7 +103,7 @@
                             <label for="owner" class="col-sm-4 control-label">Owner</label>
 
                             <div class="col-sm-6">
-                                <input id="owner" type="text" class="form-control" name="owner" value="{{ old('owner', $room->owner->name) }}" autocomplete="off">
+                                <input id="owner" type="text" class="form-control" name="owner" value="{{ old('owner', $room->owner ? $room->owner->name : '') }}" placeholder="Nobody" autocomplete="off">
 
                                 @if ($errors->has('owner'))
                                     <span class="help-block">
@@ -148,9 +148,9 @@
 
         $('#delete-room').on('submit', function(ev){
             ev.preventDefault();
-            alertify.confirm('Delete Room', 'Are you sure you want to delete the room?', function(){
+            alertify.confirm('Delete Room', 'Are you sure you want to delete the room? This action cannot be undone.', function(){
                 ev.target.submit();
-            }, function() {})
+            }, function() {});
         });
     </script>
 @endpush

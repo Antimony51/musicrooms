@@ -6,9 +6,10 @@ $font-family-sans-serif: 'Lato', sans-serif;
 $fa-font-path: "../fonts/font-awesome";
 @import "node_modules/font-awesome/scss/font-awesome";
 
-$palette-red: #ff0000;
+$palette-red: #d11020;
 $palette-heartred: #ff2c6d;
 $palette-green: #2fd127;
+$palette-darkgreen: #2a7c26;
 $palette-blue: #475bc0;
 $palette-extra-muted: #ccc;
 
@@ -29,6 +30,11 @@ $user-icon-large-size: 200px;
 .color-green {
   color: $palette-green;
 }
+
+.color-darkgreen {
+  color: $palette-green;
+}
+
 
 .color-blue {
   color: $palette-blue;
@@ -134,6 +140,11 @@ $user-icon-large-size: 200px;
 .user-icon-large {
   width: $user-icon-large-size;
   height: $user-icon-large-size;
+}
+
+.user-role {
+  font-size: 0.6em;
+  font-weight: bold;
 }
 
 .track-name {

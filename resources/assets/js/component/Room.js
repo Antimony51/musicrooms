@@ -148,7 +148,7 @@ class Room extends React.Component {
         });
     }
 
-    processStateChange (newState){
+    processReceivedState (newState){
         var newUsers, newTracks;
         if (!this.receivedState){
             newUsers = new Set(newState.users);
@@ -170,20 +170,7 @@ class Room extends React.Component {
             }
 
             if (this.receivedState.roomDataToken != newState.roomDataToken){
-                $.ajax({
-                    url: `/room/${app.currentRoom.name}/data`,
-                    method: 'get',
-                    dataType: 'json',
-                    maxTries: 3,
-                    success: function (data) {
-                        app.currentRoom = data;
-                    },
-                    error: function () {
-                        if (--this.maxTries){
-                            $.ajax(this);
-                        }
-                    }
-                });
+                this.updateRoomData();
             }
         }
 
@@ -225,7 +212,7 @@ class Room extends React.Component {
         })
             .done((data) => {
                 this.syncFails = 0;
-                this.processStateChange(data);
+                this.processReceivedState(data);
             })
             .fail(() => {
                 this.syncFails++;
@@ -248,30 +235,61 @@ class Room extends React.Component {
             });
     }
 
-    componentDidMount(){
+    updateRoomData(success, fail){
         $.ajax({
-            url: `/room/${app.currentRoom.name}/join`,
-            method: 'post',
+            url: `/room/${app.currentRoom.name}/data`,
+            method: 'get',
             dataType: 'json',
-        })
-            .done((data) => {
-                if (this.state.loading){
-                    this.setState({
-                        loading: false
-                    });
+            maxTries: 3,
+            success: function (data) {
+                if (success){
+                    success();
                 }
-                this.processStateChange(data);
-                window.addEventListener('beforeunload', this.handleBeforeUnload);
-                this.syncTimer = setTimeout(this.sync, 1000);
+                app.currentRoom = data;
+            },
+            error: function () {
+                if (--this.maxTries){
+                    $.ajax(this);
+                }else{
+                    if (fail){
+                        fail()
+                    }
+                }
+            }
+        });
+    }
+
+    componentDidMount(){
+        this.updateRoomData(() => {
+            $.ajax({
+                url: `/room/${app.currentRoom.name}/join`,
+                method: 'post',
+                dataType: 'json',
             })
-            .fail((xhr) => {
-                this.props.unmount();
-                alertify.alert('Error', 'Failed to join: ' + xhr.responseText,
-                    function(){
-                        location = "/rooms";
-                    });
-            });
-        window.addEventListener('resize', this.checkDescriptionOverflow);
+                .done((data) => {
+                    if (this.state.loading){
+                        this.setState({
+                            loading: false
+                        });
+                    }
+                    this.processReceivedState(data);
+                    window.addEventListener('beforeunload', this.handleBeforeUnload);
+                    this.syncTimer = setTimeout(this.sync, 1000);
+                })
+                .fail((xhr) => {
+                    this.props.unmount();
+                    alertify.alert('Error', 'Failed to join: ' + xhr.responseText,
+                        function(){
+                            location = "/rooms";
+                        });
+                });
+            window.addEventListener('resize', this.checkDescriptionOverflow);
+        }, () => {
+            alertify.alert('Error', 'Failed to join: Couldn\'t get room data.',
+                function(){
+                    location = "/rooms";
+                });
+        });
     }
 
     componentWillUnmount(){
@@ -294,10 +312,27 @@ class Room extends React.Component {
                     queue: this.state.queue.filter((v) => v.key !== track.key )
                 });
             })
-            .fail(() => {
-                alertify.error('Removing track failed');
+            .fail((xhr) => {
+                alertify.alert('Error', `Failed to remove track.` + (xhr.responseText ? `<br>${xhr.responseText}` : ''));
             });
     };
+
+    handleRequestClearQueue = () => {
+        alertify.confirm('Clear Queue', 'Are you sure you want to clear the queue?', ()=>{
+            $.ajax({
+                url: `/room/${app.currentRoom.name}/clearqueue`,
+                method: 'post',
+            })
+                .done(() => {
+                    this.setState({
+                        queue: []
+                    });
+                })
+                .fail((xhr) => {
+                    alertify.alert('Error', `Failed to clear queue.` + (xhr.responseText ? `<br>${xhr.responseText}` : ''));
+                });
+        }, ()=>{});
+    }
 
     startUpload () {
 
@@ -444,7 +479,8 @@ class Room extends React.Component {
             preloadTrack
         } = this.state;
 
-        const isOwner = app.currentRoom.owner.name == app.currentUser.name;
+        const isOwner = app.currentRoom.owner && app.currentRoom.owner.name == app.currentUser.name;
+        const isAdmin = app.currentUser.admin;
 
         var description = app.currentRoom.description;
         if (descriptionCanExpand){
@@ -485,17 +521,21 @@ class Room extends React.Component {
                             </h2>
                             <h5 className="text-muted">
                                 Owner: { isOwner ? 'You' : (
-                                        <a href={'/user/' + app.currentRoom.owner.name}>
-                                            {app.currentRoom.owner.displayName}
-                                        </a>
+                                        app.currentRoom.owner ? (
+                                            <a href={'/user/' + app.currentRoom.owner.name}>
+                                                {app.currentRoom.owner.displayName}
+                                            </a>
+                                        ) : (
+                                            'Nobody'
+                                        )
                                     )
                                 } {
-                                    isOwner && (
+                                    (isOwner || isAdmin) ? (
                                         <a href={`/room/${app.currentRoom.name}/settings`}
                                             className="btn btn-xs btn-default" >
                                             Settings
                                         </a>
-                                    )
+                                    ) : null
                                 }
 
                             </h5>
@@ -538,9 +578,15 @@ class Room extends React.Component {
                         <div className="col-sm-6 col-sm-offset-1">
                             <div className="panel panel-default queue-panel">
                                 <div className="panel-heading">
-                                    <AddTrackButton className="pull-right"
-                                        buttonClass="btn-xs"
-                                        onRequestUpload={this.handleRequestUpload} />
+                                    <div className="pull-right">
+                                    {
+                                        (isOwner || isAdmin) ? (
+                                            <span className="spacer-after">
+                                                <i className="icon-button fa fa-ban" title="Clear" onClick={this.handleRequestClearQueue} />
+                                            </span>
+                                        ) : null
+                                    } <AddTrackButton onRequestUpload={this.handleRequestUpload} />
+                                    </div>
                                     <div className="panel-title">Queue</div>
                                 </div>
                                 <Queue tracks={queue} onRequestRemove={this.handleRequestRemove}/>

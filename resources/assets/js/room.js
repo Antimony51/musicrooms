@@ -6,4 +6,4 @@ var content = document.getElementById('content');
 var unmount = function (){
   return ReactDOM.unmountComponentAtNode(content);
 }
-ReactDOM.render(<Room room={app.currentRoom} unmount={unmount}/>, content);
+ReactDOM.render(<Room unmount={unmount}/>, content);

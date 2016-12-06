@@ -20,16 +20,21 @@ if (config('auth.passwords.users.use_security_questions')){
     $this->post('password/answers', 'Auth\PasswordController@checkAnswers');
 }
 
-
 // Home Routes
 Route::get('home', 'HomeController@index');
 Route::get('', 'HomeController@index')->name('home');
 
+// Public Room List
+Route::get('rooms', 'RoomController@showPublicRooms')->name('publicRooms');
+
 // Authed routes
 Route::group(['middleware' => 'auth'], function(){
+
     // Admin
-    Route::get('admin/users', 'UserController@showUserList');
-    Route::get('admin/rooms', 'RoomController@showAllRooms');
+    Route::group(['prefix' => 'admin', 'middleware' => 'admin'], function(){
+        Route::get('users', 'UserController@showUserList');
+        Route::get('rooms', 'RoomController@showAllRooms')->name('adminRoomList');
+    });
 
     // User
     Route::group(['prefix' => 'user/{user}'], function(){
@@ -45,24 +50,25 @@ Route::group(['middleware' => 'auth'], function(){
         Route::post('cancelrequest', 'UserController@removeFriend');
         Route::post('acceptfriend', 'UserController@acceptFriend');
         Route::post('declinefriend', 'UserController@declineFriend');
-        Route::post('updateprofile', 'UserController@updateProfile')->name('updateProfile');
         Route::get('edit', 'UserController@showEditProfile')->name('editProfile');
+        Route::post('updateprofile', 'UserController@updateProfile')->name('updateProfile');
+        Route::get('settings', 'UserController@showUserSettings')->name('userSettings');
+        Route::post('update', 'UserController@updateUser')->name('updateUser');
+        Route::post('delete', 'UserController@delete')->name('deleteUser');
     });
     Route::post('favorites/add/{id}', 'UserController@addFavorite');
     Route::post('favorites/remove/{id}', 'UserController@removeFavorite');
     Route::post('savedrooms/add/{room}', 'UserController@addSavedRoom');
     Route::post('savedrooms/remove/{room}', 'UserController@removeSavedRoom');
-    Route::get('usersettings', 'UserController@showUserSettings')->name('userSettings');
-    Route::post('updateuser', 'UserController@updateUser')->name('updateUser');
 
     // Rooms
     Route::group(['prefix' => 'rooms'], function(){
-        Route::get('', 'RoomController@showPublicRooms')->name('publicRooms');
         Route::get('saved', 'RoomController@showSavedRooms')->name('savedRooms');
         Route::get('mine', 'RoomController@showMyRooms')->name('myRooms');
         Route::get('create', 'RoomController@showCreateRoom')->name('showCreateRoom');
         Route::post('create', 'RoomController@createRoom')->name('createRoom');
     });
+
     //Specific room
     Route::group(['prefix' => 'room/{room}'], function(){
         Route::get('', 'RoomController@show')->name('room');
@@ -74,6 +80,9 @@ Route::group(['middleware' => 'auth'], function(){
         Route::post('leave', 'RoomController@leave')->name('leaveRoom');
         Route::post('addtrack', 'RoomController@addTrack');
         Route::post('removetrack', 'RoomController@removeTrack');
+        Route::post('skipcurrent', 'RoomController@skipCurrentTrack');
+        Route::post('clearqueue', 'RoomController@clearQueue');
+        Route::post('seekto', 'RoomController@seekTo');
         Route::get('data', function(App\Room $room) {return $room;});
         Route::get('getdata', 'RoomController@getData');
     });
