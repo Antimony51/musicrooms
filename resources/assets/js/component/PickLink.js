@@ -232,6 +232,11 @@ class PickLink extends React.Component {
                         }
                     </div>
                 </div>
+                <div className="form-group">
+                    <div className="text-center">
+                        <button type="submit" className="btn btn-primary" disabled={!this.state.track}>Add Track</button>
+                    </div>
+                </div>
             </form>
         );
     }
