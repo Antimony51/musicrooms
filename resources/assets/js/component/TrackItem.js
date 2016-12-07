@@ -5,7 +5,7 @@ function TrackItem (props) {
     var track = props.track;
 
     if (track.type == 'file' || track.type == 'soundcloud'){
-        var name = `${track.title || 'Unknown Title'} - ${track.artist || 'Unknown Artist'}`;
+        var name = `${track.artist || 'Unknown Artist'} - ${track.title || 'Unknown Title'}`;
     }else if (track.type == 'youtube'){
         var name = track.title;
     }

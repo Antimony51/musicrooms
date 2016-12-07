@@ -204,11 +204,11 @@ class Player extends React.Component {
                             <ScrollyText className="h3 text-center">
                                 {
                                     track ? (
-                                        (track.title || 'Unknown Title') + (
+                                        (
                                             (track.type == 'file' || track.type == 'soundcloud') ? (
-                                                ' - ' + (track.artist || 'Unknown Artist')
+                                                (track.artist || 'Unknown Artist') + ' - '
                                             ) : ''
-                                        )
+                                        ) + (track.title || 'Unknown Title')
                                     ) : 'Nothing Playing'
                                 }
                             </ScrollyText>
@@ -261,7 +261,7 @@ class Player extends React.Component {
                     </div>
                 </div>
                 <div>
-                    <SeekBar value={track ? played : null} onChange={this.handleSeekBarChange} locked={!(isRoomOwner || isAdmin)} />
+                    <SeekBar value={track ? played : null} onChange={this.handleSeekBarChange} locked={!(track && (isRoomOwner || isAdmin))} />
                     {
                         players
                     }
