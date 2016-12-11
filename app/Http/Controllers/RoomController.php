@@ -376,7 +376,6 @@ class RoomController extends Controller
                     $track->title = $newTrack->title;
                     $track->artist = $newTrack->artist;
                     $track->album = $newTrack->album;
-                    $track->link = $newTrack->link;
 
                     if ($type == 'file' && !Storage::cloud()->exists($track->link)){
                         Log::warning("Missing track file $uri.mp3, will transcode again.");
